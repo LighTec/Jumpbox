@@ -12,6 +12,14 @@ public class Player {
         this.score = 0;
     }
 
+    public Player(boolean isFirstPlayer){ // for initial connection
+        this.username = "";
+        this.macAddr = "-1";
+        this.isFirstPlayer = isFirstPlayer;
+        this.score = 0;
+        this.isDrawer = false;
+    }
+
     public String getUsername() {
         return username;
     }
