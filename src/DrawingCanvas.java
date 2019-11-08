@@ -1,3 +1,4 @@
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -112,4 +113,10 @@ public class DrawingCanvas
             System.out.println("total packets:" + test);
         }
     };
+
+    public void resetCanvas(ActionEvent actionEvent)
+    {
+        resetCanvas();
+
+    }
 }
