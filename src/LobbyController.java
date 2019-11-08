@@ -18,6 +18,7 @@ public class LobbyController implements Initializable {
 
     private String currentPlayerName;
     private String serverIp;
+    private TCPClient tcpClient;
 
     @FXML
     private ListView<String> playerListView;
@@ -31,6 +32,9 @@ public class LobbyController implements Initializable {
         this.playerListView.setItems(playersObservable);
         this.currentPlayerName = Main.currentUsername;
         this.serverIp = Main.serverIp;
+        this.tcpClient = Main.tcpClient;
+
+        // TODO UNCOMMENT THIS tcpClient.sendFromUser(new Request(1, new Object[]{currentPlayerName, serverIp}));
 
         // TODO TEMPORARY
         Button startGameButton = new Button("Start Game (debug button)");
@@ -41,9 +45,6 @@ public class LobbyController implements Initializable {
     public void sendCommand(Request request) {
         int command = request.command;
         switch (command) {
-            case 1: // Initial Connection
-                // TODO TCPClient: tcpClient.sendCommand(new Request(1, username));
-                break;
             case 12: // Set game leader
                 Player leader = (Player) request.arg[0];
                 if (this.currentPlayerName.equals(leader.getUsername())) {
@@ -54,7 +55,7 @@ public class LobbyController implements Initializable {
                     rightPane.getChildren().add(new Text("Waiting for your game leader to start the game..."));
                 }
                 break;
-            case 34: // TODO CONTINUE HERE command for adding new user
+            case 34: // A new player joined the game
                 playersObservable.add((String) request.arg[0]);
                 break;
         }

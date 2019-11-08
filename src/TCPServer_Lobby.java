@@ -6,25 +6,6 @@
  * - {Please add your name here if you edit code, ty!}
  */
 
-/*
-IMPORTANT STUFF FOR WHEN WRITING CLIENT:
-- buffer size of 64000
-- commands are integers
- */
-
-/*
-TODO:
-- lobby loop
-- run the skribble server
-- debugging everything
- */
-
-/* ####### How to run: ##########
-        TCPServer_Lobby lobby = new TCPServer_Lobby(9996); // pick some port
-        lobby.runServer(); // starts the server.
- */
-
-
 import com.sun.org.apache.bcel.internal.generic.Select;
 
 import java.io.*;
@@ -41,8 +22,9 @@ public class TCPServer_Lobby {
     private static boolean DEBUG = true; // debug print statements print if this is true
     private static String[] GAMETYPES = {"skribble"}; // game types available
     private static int MAXNAMELEN = 256;
+    private static int LOBBYPORT = 9000;
 
-    private int port;
+    //private int port;
     private int[] cmdLen;
     private ArrayList<Player> playerList;
     private boolean terminated = false;
@@ -52,14 +34,12 @@ public class TCPServer_Lobby {
     private String selectedGame = "";
     private boolean gameStarted = false;
 
-    public TCPServer_Lobby(int port){
-        this.port = port;
+    public TCPServer_Lobby(){
         this.playerList = new ArrayList<>();
         this.initCmdLen();
     }
 
-    public TCPServer_Lobby(int port, ArrayList<Player> players){
-        this.port = port;
+    public TCPServer_Lobby(ArrayList<Player> players){
         this.playerList = players;
         this.initCmdLen();
     }
@@ -95,16 +75,16 @@ public class TCPServer_Lobby {
         try {
             selector = Selector.open();
 
-        // Create a server channel and make it non-blocking
-        ServerSocketChannel channel = ServerSocketChannel.open();
-        channel.configureBlocking(false);
+            // Create a server channel and make it non-blocking
+            ServerSocketChannel channel = ServerSocketChannel.open();
+            channel.configureBlocking(false);
 
-        // Get the port number and bind the socket
-        InetSocketAddress isa = new InetSocketAddress(this.port);
-        channel.socket().bind(isa);
+            // Get the port number and bind the socket
+            InetSocketAddress isa = new InetSocketAddress(LOBBYPORT);
+            channel.socket().bind(isa);
 
-        // Register that the server selector is interested in connection requests
-        channel.register(selector, SelectionKey.OP_ACCEPT);
+            // Register that the server selector is interested in connection requests
+            channel.register(selector, SelectionKey.OP_ACCEPT);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -117,8 +97,16 @@ public class TCPServer_Lobby {
 
                 if(!this.selectedGame.isEmpty()){
                     // TODO init game lobby
+                    /*
+                    TODO:
+                    1. When a player connects, send them the entire player list & send to all other players the
+                        newly connected users' name
+                    2. When a player disconnects send bulk update to all with playerlist removed
+                    3.
+                     */
                     switch(this.selectedGame){
                         case "skribble":
+                            // create game at port 9001
                             break;
                         default:
                             System.err.println("Game start error!");
@@ -247,7 +235,7 @@ public class TCPServer_Lobby {
                                         break;
                                     case 3:
                                     case 6:
-                                        // to be implemented as an additional feature for reconnection
+                                        // TODO get reconnection working based off username
                                         inBuffer.putInt(4);
                                         inBuffer.putInt(6);
                                         inBuffer.flip();
@@ -258,7 +246,7 @@ public class TCPServer_Lobby {
                                         break;
                                     case 5:
                                         if(DEBUG){
-                                            System.out.println("Echoing back: " + new String(pktBytes, StandardCharsets.UTF_8));
+                                            System.out.println("Echoing back.");
                                         }
                                         inBuffer.putInt(5);
                                         inBuffer.putInt(len);
@@ -324,13 +312,11 @@ public class TCPServer_Lobby {
                                         }
 
                                         for(int i = 0; i < keyset.size(); i++){
-                                            inBuffer.putInt(scoreArr[i]); // put score
-                                            inBuffer.putChar(','); // put comma
 
-                                            // put name in buffer
+                                            // put name,score in buffer
                                             cBuffer = CharBuffer.allocate(MAXNAMELEN);
                                             cBuffer.clear();
-                                            cBuffer.put(nameArr[i]);
+                                            cBuffer.put(nameArr[i] + "," + scoreArr[i]);
                                             cBuffer.flip();
                                             inBuffer.put(encoder.encode(cBuffer));
                                             cBuffer.flip();
@@ -354,7 +340,7 @@ public class TCPServer_Lobby {
                                 }
                             }else{
                                 inBuffer.clear();
-                               // inBuffer.flip(); // done reading, flip back to write for output
+                                // inBuffer.flip(); // done reading, flip back to write for output
                                 inBuffer.putInt(4);
                                 inBuffer.putInt(99);
                                 inBuffer.flip();

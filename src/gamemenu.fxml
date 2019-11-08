@@ -37,7 +37,7 @@
           <children>
                   <AnchorPane fx:id="canvasParent" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="40.0">
                   </AnchorPane>
-            <Label alignment="CENTER" font="$x1" layoutX="14.0" layoutY="14.0" style="&#10;" text="Draw here" textAlignment="CENTER" textFill="$x2" wrapText="false" />
+            <Label alignment="CENTER" font="$x1" layoutX="14.0" layoutY="14.0" style="&#10;" text="Draw here" fx:id="gameTitle" textAlignment="CENTER" textFill="$x2" wrapText="false" />
           </children>
         </AnchorPane>
       <AnchorPane id="Content" minHeight="-1.0" minWidth="-1.0" prefHeight="677.0" prefWidth="51.0">
@@ -67,7 +67,7 @@
                   <TextField fx:id="chatField" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                </children>
             </AnchorPane>
-        <Label font="$x3" maxWidth="-1.0" text="Game Status: (Drawer)" textFill="$x4" HBox.hgrow="NEVER" />
+        <Label font="$x3" maxWidth="-1.0" fx:id="gameStatusText" textFill="$x4" HBox.hgrow="NEVER" />
       </children>
       <padding>
         <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
