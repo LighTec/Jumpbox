@@ -64,7 +64,7 @@ public class GameController implements Initializable {
         source.clear();
 
         Message newMessage = new Message(message, currentPlayerName);
-        tcpClient.sendFromUser(new Request(42, new Object[]{newMessage}));
+        // TODO UNCOMMENT THIS tcpClient.sendFromUser(new Request(42, new Object[]{newMessage}));
     }
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle)
@@ -91,17 +91,8 @@ public class GameController implements Initializable {
 
         root.getChildren().add(canvas);
 
-
-        // TODO TEMPORARY
-        try {
-            Thread.sleep(1000);
-            sendCommand(new Request(4, null));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
         // Reconnection
-        tcpClient.sendFromUser(new Request(3, new Object[]{currentPlayerName}));
+        // TODO UNCOMMENT THIS tcpClient.sendFromUser(new Request(3, new Object[]{currentPlayerName}));
     }
 
     public void sendCommand(Request request) {
@@ -142,7 +133,7 @@ public class GameController implements Initializable {
                 }
 
                 System.out.println("Selection: " + selected);
-                tcpClient.sendFromUser(new Request(22, new Object[]{selected}));
+                // TODO UNCOMMENT THIS tcpClient.sendFromUser(new Request(22, new Object[]{selected}));
                 break;
             case 22: // Send chosen draw option
                 currentWord = (String) request.arg[0];
@@ -208,7 +199,7 @@ public class GameController implements Initializable {
 
 
             case 50:
-                resetCanvas();
+                canvas.resetCanvas();
                 break;
             case 51:
                 String coords = (String) request.arg[0];
@@ -219,13 +210,13 @@ public class GameController implements Initializable {
 
     public void newRound() {
         this.round = 0;
-        resetCanvas();
+        canvas.resetCanvas();
         chatObservable.clear();
 
         for (Player p : players) p.setDrawer(false);
 
         // Get players and scores
-        tcpClient.sendFromUser(new Request(30, null));
+        // TODO UNCOMMENT THIS tcpClient.sendFromUser(new Request(30, null));
     }
 
     private void setDrawer(Player drawer) {
@@ -242,10 +233,6 @@ public class GameController implements Initializable {
             isCurrentPlayerDrawer = false;
             gameStatusText.setText("Game Status: (Guesser)");
         }
-    }
-
-    private void resetCanvas() {
-        // TODO
     }
 
     public ArrayList<Player> getPlayers() {

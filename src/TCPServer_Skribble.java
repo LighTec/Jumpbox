@@ -12,8 +12,6 @@ IMPORTANT STUFF FOR WHEN WRITING CLIENT:
 - commands are integers
  */
 
-package main;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
