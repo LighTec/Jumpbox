@@ -6,27 +6,6 @@
  * - {Please add your name here if you edit code, ty!}
  */
 
-/*
-IMPORTANT STUFF FOR WHEN WRITING CLIENT:
-- buffer size of 64000
-- commands are integers
- */
-
-/*
-TODO:
-- finish cmd stuff
-- lobby loop
-- run the skribble server
- */
-
-/*
- * A TCP server for the game project 'JumpBox"
- * By CPSC 441 Fall 2019 Group 6
- * Writers:
- * -  Kell Larson
- * - {Please add your name here if you edit code, ty!}
- */
-
 import com.sun.org.apache.bcel.internal.generic.Select;
 
 import java.io.*;
@@ -39,26 +18,26 @@ import java.util.*;
 public class TCPServer_Lobby {
 
     private static int BUFFERSIZE = 64000; // 64k buffer, enough for a 140*140 uncompressed image max
-    private static int PLAYERMAX = 16;
+    private static int PLAYERMAX = 16; // max amount of players allocated for
     private static boolean DEBUG = true; // debug print statements print if this is true
     private static String[] GAMETYPES = {"skribble"}; // game types available
-    private static int MAXNAMELEN = 256;
-    private static int LOBBYPORT = 9000;
+    private static int MAXNAMELEN = 256; // maximum name length allocated for
+    private static int LOBBYPORT = 9000; // port for the lobby
 
     //private int port;
-    private int[] cmdLen;
+    private int[] cmdLen; // command length array
     private ArrayList<Player> playerList;
-    private boolean terminated = false;
+    private boolean terminated = false; // if the lobby has terminated or not
     private HashMap<Integer, Player> playerNetHash = new HashMap<>(PLAYERMAX); // must be allocated size, so max 16 currently connected players
     private ByteBuffer inBuffer = ByteBuffer.allocateDirect(BUFFERSIZE);
     private CharBuffer cBuffer = null;
-    private String selectedGame = "";
-    private boolean gameStarted = false;
-    private ArrayList<Integer> playerKeys = new ArrayList<>();
-    private Integer maxIntKey = 0;
-    private String leaderName = "";
+    private String selectedGame = ""; // the name of which game has been selected
+    private boolean gameStarted = false; // whether a game has started
+    private ArrayList<Integer> playerKeys = new ArrayList<>(); // the list of all player keys
+    private Integer maxIntKey = 0; // the current integer key
+    private String leaderName = ""; // the lobby leader, who picks the game to play
 
-    private Charset charset = StandardCharsets.US_ASCII;
+    private Charset charset = StandardCharsets.US_ASCII; // what charset we are using for byte <-> string conversion
     private CharsetEncoder encoder = charset.newEncoder();
     private CharsetDecoder decoder = charset.newDecoder();
 
@@ -411,6 +390,11 @@ public class TCPServer_Lobby {
         }
     }
 
+    /**
+     * Turns a byte array to a string, as according to the encoding and deconding scheme defined by "charset".
+     * @param inBytes
+     * @return
+     */
     public String byteArrToString(byte[] inBytes){
 
         ByteBuffer inBuffera = ByteBuffer.allocateDirect(inBytes.length);
@@ -424,6 +408,11 @@ public class TCPServer_Lobby {
         return cBuffera.toString();
     }
 
+    /**
+     * Turns a string into a byte array, as according to the encoding and decoding scheme defined by "charset".
+     * @param in
+     * @return
+     */
     public byte[] StringToByteArr(String in){
 
         ByteBuffer inBufferb = ByteBuffer.allocateDirect(in.length());
@@ -451,6 +440,9 @@ public class TCPServer_Lobby {
         return outBytes;
     }
 
+    /**
+     * Initializes the cmd length array with how long each command is, -1 if n length, or -2 if the cmd is invalid.
+     */
     private void initCmdLen(){
         this.cmdLen = new int[256];
         Arrays.fill(this.cmdLen, -2);

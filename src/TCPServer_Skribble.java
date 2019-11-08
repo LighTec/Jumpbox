@@ -12,20 +12,6 @@ IMPORTANT STUFF FOR WHEN WRITING CLIENT:
 - commands are integers
  */
 
-/*
- * A TCP server for the game project 'JumpBox"
- * By CPSC 441 Fall 2019 Group 6
- * Writers:
- * -  Kell Larson
- * - {Please add your name here if you edit code, ty!}
- */
-
-/*
-IMPORTANT STUFF FOR WHEN WRITING CLIENT:
-- buffer size of 64000
-- commands are integers
- */
-
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -36,10 +22,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CharsetEncoder;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.*;
 import java.util.*;
 
 public class TCPServer_Skribble {
@@ -62,6 +45,7 @@ public class TCPServer_Skribble {
     private CharBuffer cBuffer = null;
     private ArrayList<Integer> playerKeys = new ArrayList<>();
     private Integer maxIntKey = 0;
+    private Random ranGen = new Random();
 
     private Charset charset = StandardCharsets.US_ASCII;
     private CharsetEncoder encoder = charset.newEncoder();
@@ -364,6 +348,43 @@ public class TCPServer_Skribble {
         }
     }
 
+    /**
+     * Turns a string into a byte array, as according to the encoding and decoding scheme defined by "charset".
+     * @param in
+     * @return
+     */
+    public byte[] StringToByteArr(String in){
+
+        ByteBuffer inBufferb = ByteBuffer.allocateDirect(in.length());
+        CharBuffer cBufferb = CharBuffer.allocate(in.length());
+        inBufferb.clear();
+        // put name,score in buffer
+        cBufferb = CharBuffer.allocate(in.length());
+        cBufferb.clear();
+        cBufferb.put(in);
+        cBufferb.flip();
+        byte[] outBytes = {32};
+        try{
+            inBufferb.put(encoder.encode(cBufferb));
+            inBufferb.flip();
+            outBytes = new byte[in.length()];
+            for(int i = 0; i < in.length(); i++){
+                outBytes[i] = inBufferb.get();
+            }
+
+        }catch(CharacterCodingException e){
+        }
+
+        cBufferb.flip();
+
+        return outBytes;
+    }
+
+    /**
+     * Turns a byte array to a string, as according to the encoding and deconding scheme defined by "charset".
+     * @param inBytes
+     * @return
+     */
     private String byteArrToString(byte[] inBytes){
 
         ByteBuffer inBuffer = ByteBuffer.allocateDirect(inBytes.length);
@@ -377,6 +398,9 @@ public class TCPServer_Skribble {
         return cBuffer.toString();
     }
 
+    /**
+     * Initializes the cmd length array with how long each command is, -1 if n length, or -2 if the cmd is invalid.
+     */
     private void initCmdLen(){
         this.cmdLen = new int[256];
         Arrays.fill(this.cmdLen, -2);
@@ -417,4 +441,30 @@ public class TCPServer_Skribble {
     // ####### NETWORK MANAGEMENT CODE END
 
     // ###### GAME FUNCTIONS BEGIN
+
+    /**
+     * Returns a round's worth of draw choices for the drawer. GUaranteed to not contain duplicates.
+     * @return a random subset of the draw choices
+     */
+    private String[] getDrawChoices(){
+        int[] randomNums = new int[DRAWCHOICEAMT];
+        Arrays.fill(randomNums, -1);
+        String[] randomStrings = new String[DRAWCHOICEAMT];
+        int i = 0;
+        while(i < DRAWCHOICEAMT){
+            int rann = (int)Math.round((this.ranGen.nextDouble() * DRAWCHOICES.length));
+            boolean unique = true;
+            for(int j = 0; j < randomNums.length; j++){
+                if(rann == randomNums[j]){
+                    unique = false;
+                }
+            }
+            if(unique){
+                randomNums[i] = rann;
+                randomStrings[i] = DRAWCHOICES[i];
+                i++;
+            }
+        }
+        return randomStrings;
+    }
 }
