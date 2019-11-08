@@ -34,7 +34,7 @@ public class LobbyController implements Initializable {
         this.serverIp = Main.serverIp;
         this.tcpClient = Main.tcpClient;
 
-        // TODO UNCOMMENT THIS tcpClient.sendFromUser(new Request(1, new Object[]{currentPlayerName, serverIp}));
+        tcpClient.sendFromUser(new Request(1, new Object[]{currentPlayerName, serverIp}));
 
         // TODO TEMPORARY
         Button startGameButton = new Button("Start Game (debug button)");

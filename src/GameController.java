@@ -63,7 +63,7 @@ public class GameController implements Initializable {
         source.clear();
 
         Message newMessage = new Message(message, currentPlayerName);
-        // TODO UNCOMMENT THIS tcpClient.sendFromUser(new Request(42, new Object[]{newMessage}));
+        tcpClient.sendFromUser(new Request(42, new Object[]{newMessage}));
     }
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle)
@@ -91,7 +91,7 @@ public class GameController implements Initializable {
         root.getChildren().add(canvas);
 
         // Reconnection
-        // TODO UNCOMMENT THIS tcpClient.sendFromUser(new Request(3, new Object[]{currentPlayerName}));
+        tcpClient.sendFromUser(new Request(3, new Object[]{currentPlayerName}));
     }
 
     public void sendCommand(Request request) {
@@ -132,7 +132,7 @@ public class GameController implements Initializable {
                 }
 
                 System.out.println("Selection: " + selected);
-                // TODO UNCOMMENT THIS tcpClient.sendFromUser(new Request(22, new Object[]{selected}));
+                tcpClient.sendFromUser(new Request(22, new Object[]{selected}));
                 break;
             case 22: // Send chosen draw option
                 currentWord = (String) request.arg[0];
@@ -215,7 +215,7 @@ public class GameController implements Initializable {
         for (Player p : players) p.setDrawer(false);
 
         // Get players and scores
-        // TODO UNCOMMENT THIS tcpClient.sendFromUser(new Request(30, null));
+        tcpClient.sendFromUser(new Request(30, null));
     }
 
     private void setDrawer(Player drawer) {

@@ -248,6 +248,8 @@ public class TCPServer_Lobby {
                                         if(DEBUG){
                                             System.out.println("Echoing back.");
                                         }
+                                        inBuffer.putInt(5);
+                                        inBuffer.putInt(len);
                                         inBuffer.put(pktBytes);
                                         inBuffer.flip();
                                         z = cchannel.write(inBuffer); // echo back
