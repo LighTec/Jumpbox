@@ -50,12 +50,13 @@ public class TCPServer_Lobby {
     private ArrayList<Player> playerList;
     private boolean terminated = false;
     private HashMap<Integer, Player> playerNetHash = new HashMap<>(PLAYERMAX); // must be allocated size, so max 16 currently connected players
-    private ByteBuffer inBuffer = null;
+    private ByteBuffer inBuffer = ByteBuffer.allocateDirect(BUFFERSIZE);
     private CharBuffer cBuffer = null;
     private String selectedGame = "";
     private boolean gameStarted = false;
     private ArrayList<Integer> playerKeys = new ArrayList<>();
     private Integer maxIntKey = 0;
+    private String leaderName = "";
 
     private Charset charset = StandardCharsets.US_ASCII;
     private CharsetEncoder encoder = charset.newEncoder();
@@ -257,7 +258,13 @@ public class TCPServer_Lobby {
                                         break;
                                     case 1:
                                         cplayer.setUsername(byteArrToString(pktBytes)); // update player name
+                                        if(cplayer.isFirstPlayer()){
+                                            this.leaderName = cplayer.getUsername();
+                                        }
                                         this.playerNetHash.replace(intkey, cplayer); // update hashmap player
+                                        inBuffer.putInt(12);
+                                        inBuffer.putInt(this.leaderName.length());
+                                        inBuffer.put(this.StringToByteArr(this.leaderName));
                                         break;
                                     case 2:
                                         this.playerNetHash.remove(intkey); // remove player from list
@@ -405,17 +412,44 @@ public class TCPServer_Lobby {
         }
     }
 
-    private String byteArrToString(byte[] inBytes){
+    public String byteArrToString(byte[] inBytes){
 
-        ByteBuffer inBuffer = ByteBuffer.allocateDirect(inBytes.length);
-        CharBuffer cBuffer = CharBuffer.allocate(inBytes.length);
+        ByteBuffer inBuffera = ByteBuffer.allocateDirect(inBytes.length);
+        CharBuffer cBuffera = CharBuffer.allocate(inBytes.length);
 
-        inBuffer.put(inBytes);
-        inBuffer.flip();
+        inBuffera.put(inBytes);
+        inBuffera.flip();
 
-        this.decoder.decode(inBuffer, cBuffer, false);
-        cBuffer.flip();
-        return cBuffer.toString();
+        this.decoder.decode(inBuffera, cBuffera, false);
+        cBuffera.flip();
+        return cBuffera.toString();
+    }
+
+    public byte[] StringToByteArr(String in){
+
+        ByteBuffer inBufferb = ByteBuffer.allocateDirect(in.length());
+        CharBuffer cBufferb = CharBuffer.allocate(in.length());
+        inBufferb.clear();
+        // put name,score in buffer
+        cBufferb = CharBuffer.allocate(in.length());
+        cBufferb.clear();
+        cBufferb.put(in);
+        cBufferb.flip();
+        byte[] outBytes = {32};
+        try{
+            inBufferb.put(encoder.encode(cBufferb));
+            inBufferb.flip();
+            outBytes = new byte[in.length()];
+            for(int i = 0; i < in.length(); i++){
+                outBytes[i] = inBufferb.get();
+            }
+
+        }catch(CharacterCodingException e){
+        }
+
+        cBufferb.flip();
+
+        return outBytes;
     }
 
     private void initCmdLen(){
