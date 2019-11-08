@@ -48,7 +48,6 @@ public class GameController implements Initializable {
     private int round;
     private String[] wordOptions;
     private String currentWord = "";
-    private boolean isCurrentPlayerDrawer = false;
 
     private ObservableList<String> chatObservable = FXCollections.observableArrayList();
     private ObservableList<String> playersObservable = FXCollections.observableArrayList();
@@ -227,10 +226,10 @@ public class GameController implements Initializable {
         }
 
         if (currentPlayerName.equals(drawer.getUsername())) {
-            isCurrentPlayerDrawer = true;
+            canvas.setDrawable(true);
             gameStatusText.setText("Game Status: (Drawer)");
         } else {
-            isCurrentPlayerDrawer = false;
+            canvas.setDrawable(false);
             gameStatusText.setText("Game Status: (Guesser)");
         }
     }

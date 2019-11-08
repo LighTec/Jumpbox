@@ -16,12 +16,14 @@ public class DrawingCanvas
     private Canvas canvas;
     private GraphicsContext gc;
     private ArrayList<String> cords;
+    private boolean drawable;
 
     DrawingCanvas(AnchorPane canvasParent) throws InterruptedException {
         cords = new ArrayList<String>();
 
         // Create the Canvas
         canvas = new Canvas(590, 526);
+        drawable = false;
 
         // Get the graphics context of the canvas
         gc = canvas.getGraphicsContext2D();
@@ -33,11 +35,6 @@ public class DrawingCanvas
                 "-fx-border-insets: 1;" +
                 "-fx-border-radius: 5;" +
                 "-fx-border-color: black;");
-
-        canvas.addEventHandler(MouseEvent.MOUSE_PRESSED, mouseDown);
-        canvas.addEventHandler(MouseEvent.MOUSE_DRAGGED, mouseMove);
-
-        canvas.addEventHandler(MouseEvent.MOUSE_RELEASED,mouseUp);
 
 
 
@@ -57,6 +54,26 @@ public class DrawingCanvas
 
     public void resetCanvas() {
         gc.clearRect(0, 0, 300, 200);
+    }
+
+    public void setDrawable(boolean drawable)
+    {
+        this.drawable = drawable;
+        if (drawable)
+        {
+            canvas.addEventHandler(MouseEvent.MOUSE_PRESSED, mouseDown);
+            canvas.addEventHandler(MouseEvent.MOUSE_DRAGGED, mouseMove);
+            canvas.addEventHandler(MouseEvent.MOUSE_RELEASED,mouseUp);
+            resetCanvas();
+        }
+        else
+        {
+            canvas.removeEventHandler(MouseEvent.MOUSE_PRESSED, mouseDown);
+            canvas.removeEventHandler(MouseEvent.MOUSE_DRAGGED, mouseMove);
+            canvas.removeEventHandler(MouseEvent.MOUSE_RELEASED,mouseUp);
+            resetCanvas();
+        }
+
     }
 
     private EventHandler<MouseEvent> mouseDown =  new EventHandler<MouseEvent>() {
