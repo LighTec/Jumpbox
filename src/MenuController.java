@@ -45,7 +45,6 @@ public class MenuController implements Initializable {
             System.out.println(ip);
             System.out.println(username);
         }
-
-        Main.router.startGame(username, ip);
+            Main.router.startGame(username, ip);
     }
 }

@@ -28,8 +28,9 @@ public class Router {
     }
 
     public void startGame(String username, String serverIp) {
+        primaryStage.setMaximized(false);
         FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("sample.fxml")
+                getClass().getResource("gamemenu.fxml")
         );
         primaryStage.setTitle("Game");
         try {
@@ -44,8 +45,8 @@ public class Router {
         controller.initData(username, serverIp);
 
         loader.setController(controller);
-        primaryStage.setMaximized(true);
         primaryStage.show();
+        primaryStage.setMaximized(true);
     }
 
 }
