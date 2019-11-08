@@ -106,24 +106,7 @@ public class GameController implements Initializable {
 //                 TODO tcpClient.sendToUser(new Request(3, ))
                 break;
             case 4:
-                break;
-            case 5:
-                break;
-
-
-            case 10:
-                break;
-            case 11:
-                break;
-            case 12: // Send Game Leader
-                Player leader = (Player) request.arg[0];
-                if (leader.getUsername().equals(currentPlayerName)) {
-                    // TODO show 'start game' button
-                }
-                break;
-            case 13:
-                break;
-            case 14:
+                // TODO show error dialog
                 break;
 
 
@@ -189,44 +172,34 @@ public class GameController implements Initializable {
 //                for (Player p : )
                 // TODO update playersList with <username>, score: <score>
                 break;
-            case 32:
-                break;
-            case 33:
-                break;
 
 
-            case 40:
+            case 41: // Send all chat
+                List<Message> messages = new ArrayList<>();
+                int i = 0;
+                while (true) {
+                    Message m = (Message) request.arg[i];
+                    if (m == null) break;
+                    messages.add(m);
+                    i++;
+                }
+                // TODO update chatBox
                 break;
-            case 41:
-                break;
-            case 42:
-                break;
-            case 43:
+            case 43: // New message
+                Message newMessage = (Message) request.arg[0];
+                String formatted = newMessage.getSentBy() + ": " + newMessage.getMessageBody();
+                chatBoxListView.getItems().add(formatted);
                 break;
 
 
             case 50:
+                resetCanvas();
                 break;
             case 51:
-                break;
-            case 52:
-                break;
-            case 53:
-                break;
-            case 54:
+                String coords = (String) request.arg[0];
+                canvas.draw(coords);
                 break;
         }
-    }
-
-    private void initialConnection(String name) {
-
-    }
-
-    public GameController(ArrayList<Player> players, TCPClient tcpClient) {
-        this.chatBox = new ChatBox();
-        this.players = players;
-        this.tcpClient = tcpClient;
-        this.round = 0;
     }
 
     public void newRound() {
