@@ -14,7 +14,7 @@
 
 <VBox prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GameController">
   <children>
-    <SplitPane id="split1" dividerPositions="0.1870824053452116, 0.8507795100222717" focusTraversable="true" mouseTransparent="true" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
+    <SplitPane id="split1" dividerPositions="0.1870824053452116, 0.8507795100222717" focusTraversable="true" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
       <items>
         <AnchorPane>
           <children>

@@ -13,6 +13,7 @@ public class Router {
     }
 
     public void showPage(String title, String path) {
+        primaryStage.setResizable(false);
         Parent root = null;
         try {
             root = FXMLLoader.load(getClass().getResource(path));
@@ -23,12 +24,10 @@ public class Router {
         if (root != null) {
             primaryStage.setScene(new Scene(root));
         }
-        primaryStage.setMaximized(true);
         primaryStage.show();
     }
 
     public void startGame(String username, String serverIp) {
-        primaryStage.setMaximized(false);
         FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("gamemenu.fxml")
         );
@@ -46,7 +45,6 @@ public class Router {
 
         loader.setController(controller);
         primaryStage.show();
-        primaryStage.setMaximized(true);
     }
 
 }

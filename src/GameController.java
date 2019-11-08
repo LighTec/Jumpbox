@@ -14,10 +14,8 @@ import javafx.scene.paint.Color;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.function.Function;
 
 public class GameController implements Initializable {
 
@@ -68,7 +66,11 @@ public class GameController implements Initializable {
         this.chatBoxListView.setItems(chatObservable);
         this.playerListView.setItems(playersObservable);
 
-        DrawingCanvas canvastest = new DrawingCanvas();
+        try {
+            DrawingCanvas canvastest = new DrawingCanvas(canvasParent);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         for (int i = 0; i < 10; i++)
         {
@@ -144,7 +146,6 @@ public class GameController implements Initializable {
 
     public GameController(ArrayList<Player> players, TCPClient tcpClient) {
         this.chatBox = new ChatBox();
-        this.canvas = new DrawingCanvas();
         this.players = players;
         this.tcpClient = tcpClient;
         this.round = 0;
