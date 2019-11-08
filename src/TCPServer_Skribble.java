@@ -12,13 +12,7 @@ IMPORTANT STUFF FOR WHEN WRITING CLIENT:
 - commands are integers
  */
 
-/*
-TODO:
-1. remove all lobby stuff
-2. Game Loop
-3. all cmd functions
-4. Debugging
- */
+package main;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -62,10 +56,6 @@ public class TCPServer_Skribble {
         this.initCmdLen();
     }
 
-    private void PlayerAction(){
-
-    }
-
     private void runServer() {
         // Try to open a server socket on the given port
         // Note that we can't choose a port less than 1023 if we are not
@@ -81,16 +71,16 @@ public class TCPServer_Skribble {
         try {
             selector = Selector.open();
 
-        // Create a server channel and make it non-blocking
-        ServerSocketChannel channel = ServerSocketChannel.open();
-        channel.configureBlocking(false);
+            // Create a server channel and make it non-blocking
+            ServerSocketChannel channel = ServerSocketChannel.open();
+            channel.configureBlocking(false);
 
-        // Get the port number and bind the socket
-        InetSocketAddress isa = new InetSocketAddress(this.port);
-        channel.socket().bind(isa);
+            // Get the port number and bind the socket
+            InetSocketAddress isa = new InetSocketAddress(this.port);
+            channel.socket().bind(isa);
 
-        // Register that the server selector is interested in connection requests
-        channel.register(selector, SelectionKey.OP_ACCEPT);
+            // Register that the server selector is interested in connection requests
+            channel.register(selector, SelectionKey.OP_ACCEPT);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -99,6 +89,31 @@ public class TCPServer_Skribble {
         try {
             while (!terminated)
             {
+                //########### GAME CODE BEGIN
+                /*
+                TODO:
+                1. create global vars: roundsLeft, currentDrawer, roundTimeLeft, roundEnded, drawChoiceAmt
+                2. game loop: get player (how?)
+                    set as drawer
+                    drawer is given choices from dictionary
+                    drawer returns chosen choice
+                    timer begins for all
+                    drawer draws frames
+                        all other users must gets the frames pushed to them
+                    users guess
+                        check is guess is correct, update score (and send updated score to all others) if right
+                    round ends
+                    let drawer know they can no longer draw
+                    select new drawer
+                    keep looping until roundsLeft = 0
+                    tell users to go back to lobby
+                    wait 3 sec
+                    terminate self
+                 */
+
+
+                //########### GAME CODE END
+                //########### NETWORKING CODE BEGIN
                 if (selector.select(500) < 0)
                 {
                     System.out.println("select() failed");
@@ -327,70 +342,3 @@ public class TCPServer_Skribble {
 
     }
 }
-
-// old code from assignment 1 for reference purposes below
-
-/*
-                            if(line.equals("list\n")){
-
-                                File folder = new File(".");
-                                File[] listOfFiles = folder.listFiles();
-                                // iterate over files and put any ones that aren't folders into the string
-                                for(File f : listOfFiles){
-                                    if(f.isFile()){
-                                        String str = "" + f.getName() + "\n";
-                                        cBuffer.clear();
-                                        cBuffer.put(str);
-                                        cBuffer.flip();
-                                        inBuffer = encoder.encode(cBuffer);
-                                        bytesSent = cchannel.write(inBuffer);
-                                    }
-                                }
-                            }else if(line.contains("get")){
-                                // get filename
-                                String filename = line.substring(4);
-                                filename = filename.substring(0, filename.length()-1);
-                                System.out.print(filename);
-                                System.out.println("Open file: " + filename);
-                                try {
-                                    // open file
-                                    File folder = new File("");
-                                    File fileToGet = new File(folder.getAbsolutePath() + "/" + filename);
-                                    // scan file
-                                    Scanner fileIn = new Scanner(fileToGet);
-                                    String fileStr = "";
-                                    // put file into string with \n characters re-added
-                                    while(fileIn.hasNext()){
-                                        fileStr += fileIn.nextLine() + "\n";
-                                    }
-                                    fileIn.close();
-                                    for(int index = 0; index < fileStr.length(); index += 16){
-                                        String str = fileStr.substring(index, Math.min(index + 16, fileStr.length()));
-                                        System.out.println(str);
-                                        cBuffer.clear();
-                                        cBuffer.put(str);
-                                        cBuffer.flip();
-                                        inBuffer = encoder.encode(cBuffer);
-                                        bytesSent = cchannel.write(inBuffer);
-                                    }
-                                }catch(Exception e){
-                                    System.out.println("Error with file opening!");
-                                    String str = "Error on opening file " + filename + "\n";
-                                    cBuffer.clear();
-                                    cBuffer.put(str);
-                                    cBuffer.flip();
-                                    inBuffer = encoder.encode(cBuffer);
-                                    bytesSent = cchannel.write(inBuffer);
-                                }
-                            }else if(line.equals("terminate\n")){
-                                terminated = true;
-                            }else{
-                                String str = "Unknown Command: ";
-                                str += line;
-                                cBuffer.clear();
-                                cBuffer.put(str);
-                                cBuffer.flip();
-                                inBuffer = encoder.encode(cBuffer);
-                                bytesSent = cchannel.write(inBuffer);
-                            }
-                            */
