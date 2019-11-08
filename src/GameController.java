@@ -3,6 +3,15 @@ import java.util.List;
 
 public class GameController {
 
+    private String currentPlayerName;
+    private String serverIp;
+
+    void initData(String currentPlayerName, String serverIp) {
+        this.currentPlayerName = currentPlayerName;
+        this.serverIp = serverIp;
+
+    }
+
     private ChatBox chatBox;
     private Canvas canvas;
     private ArrayList<Player> players;
@@ -11,6 +20,8 @@ public class GameController {
     private int timeRemaining;
     private int round;
     private String[] wordOptions;
+
+    public GameController(){}
 
     public GameController(ArrayList<Player> players, TCPClient tcpClient) {
         this.chatBox = new ChatBox();
@@ -74,4 +85,5 @@ public class GameController {
     public ArrayList<Message> getAllChat() {
         return chatBox.getMessages();
     }
+
 }

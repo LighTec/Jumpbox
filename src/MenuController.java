@@ -1,5 +1,3 @@
-package sample;
-
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
@@ -40,10 +38,14 @@ public class MenuController implements Initializable {
     {
         Button source = (Button) e.getSource();
 
+        String username = this.userName.getText();
+        String ip = this.ip.getText();
         if (!this.ip.getText().isEmpty() && !this.userName.getText().isEmpty())
         {
-            System.out.println(this.ip.getText());
-            System.out.println(this.userName.getText());
+            System.out.println(ip);
+            System.out.println(username);
         }
+
+        Main.router.startGame(username, ip);
     }
 }
