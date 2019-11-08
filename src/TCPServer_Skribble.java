@@ -12,6 +12,20 @@ IMPORTANT STUFF FOR WHEN WRITING CLIENT:
 - commands are integers
  */
 
+/*
+ * A TCP server for the game project 'JumpBox"
+ * By CPSC 441 Fall 2019 Group 6
+ * Writers:
+ * -  Kell Larson
+ * - {Please add your name here if you edit code, ty!}
+ */
+
+/*
+IMPORTANT STUFF FOR WHEN WRITING CLIENT:
+- buffer size of 64000
+- commands are integers
+ */
+
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -34,6 +48,7 @@ public class TCPServer_Skribble {
     private static int PLAYERMAX = 16;
     private static boolean DEBUG = true; // debug print statements print if this is true
     private static String[] GAMETYPES = {"skribble"}; // game types available
+    private static int MAXNAMELEN = 256;
 
     private int port;
     private int[] cmdLen;
@@ -42,6 +57,10 @@ public class TCPServer_Skribble {
     private HashMap<SelectionKey, Player> playerNetHash = new HashMap<>(PLAYERMAX); // must be allocated size, so max 16 currently connected players
     private ByteBuffer inBuffer = null;
     private CharBuffer cBuffer = null;
+
+    private Charset charset = StandardCharsets.US_ASCII;
+    private CharsetEncoder encoder = charset.newEncoder();
+    private CharsetDecoder decoder = charset.newDecoder();
 
     public TCPServer_Skribble(int port){
         this.port = port;
@@ -210,7 +229,7 @@ public class TCPServer_Skribble {
                                     z = cchannel.write(inBuffer); // write invalid command error, cmd 11 is for clients only
                                     break;
                                 case 1:
-                                    cplayer.setUsername(Arrays.toString(pktBytes)); // update player name
+                                    cplayer.setUsername(byteArrToString(pktBytes)); // update player name
                                     this.playerNetHash.replace(key, cplayer); // update hashmap player
                                     break;
                                 case 2:
@@ -225,7 +244,7 @@ public class TCPServer_Skribble {
                                     z = cchannel.write(inBuffer); // write not yet implemented error for reconnection
                                     break;
                                 case 4:
-                                    System.out.println("Error received: " + Arrays.toString(pktBytes)); // print error
+                                    System.out.println("Error received: " + byteArrToString(pktBytes)); // print error
                                     break;
                                 case 5:
                                     inBuffer.put(pktBytes);
@@ -329,6 +348,19 @@ public class TCPServer_Skribble {
                 // do nothing
             }
         }
+    }
+
+    private String byteArrToString(byte[] inBytes){
+
+        ByteBuffer inBuffer = ByteBuffer.allocateDirect(inBytes.length);
+        CharBuffer cBuffer = CharBuffer.allocate(inBytes.length);
+
+        inBuffer.put(inBytes);
+        inBuffer.flip();
+
+        this.decoder.decode(inBuffer, cBuffer, false);
+        cBuffer.flip();
+        return cBuffer.toString();
     }
 
     private void initCmdLen(){
