@@ -151,8 +151,6 @@ public class TCPServer_Lobby {
                 Set readyKeys = selector.selectedKeys();
                 Iterator readyItor = readyKeys.iterator();
 
-                Iterator pkeys = this.playerKeys.iterator();
-
                 // Walk through the ready set
                 while (readyItor.hasNext()) {
                     // Get key from set
@@ -265,6 +263,7 @@ public class TCPServer_Lobby {
                                         inBuffer.putInt(12);
                                         inBuffer.putInt(this.leaderName.length());
                                         inBuffer.put(this.StringToByteArr(this.leaderName));
+                                        z = cchannel.write(inBuffer);
                                         break;
                                     case 2:
                                         this.playerNetHash.remove(intkey); // remove player from list
@@ -464,7 +463,7 @@ public class TCPServer_Lobby {
         this.cmdLen[6] = 6;
         this.cmdLen[10] = 0;
         this.cmdLen[11] = -1;
-        this.cmdLen[12] = 0;
+        this.cmdLen[12] = -1;
         this.cmdLen[13] = -1;
         this.cmdLen[14] = 2;
         this.cmdLen[20] = 4;
