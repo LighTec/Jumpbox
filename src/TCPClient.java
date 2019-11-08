@@ -6,8 +6,8 @@ import java.nio.charset.StandardCharsets;
 
 public class TCPClient {
     //private static Player;
-    private GameController gameController;
-    private LobbyController lobbyController;
+    public static GameController gameController;
+    public static LobbyController lobbyController;
     private static int[] cmdLen;
     private static String macAddress;
     private DataOutputStream outBuffer;
@@ -99,8 +99,9 @@ public class TCPClient {
         try {
             // Recieving server messages
             cmdReceived = inBuffer.readInt();
+            System.out.println("cmdReceived: "+ cmdReceived);
             lenReceived = this.cmdLen[cmdReceived];
-
+            System.out.println("cmdReceived: "+ cmdReceived);
             if (lenReceived == -2) {
                 //send an error
             } else if (lenReceived == -1) {
@@ -277,7 +278,7 @@ public class TCPClient {
             switch (cmdFromUser) {
 
                 case 1: //initial connection
-                    cmdSent = 5;
+                    cmdSent = 1;
                     msgFromUser = (String) request.arg[0];
                     playerName = msgFromUser;
                     ip = (String) request.arg[1];
@@ -290,6 +291,7 @@ public class TCPClient {
                     outBuffer.writeBytes(msgFromUser + "\n");
 
                     //waiting for response from server with command send game leader 12
+                    System.out.println("running handleServerCommand...");
                     handleServerCommand();
                     break;
 
@@ -308,6 +310,7 @@ public class TCPClient {
                     playerName = msgFromUser;
                     lenSent = msgFromUser.length();
                     System.out.println(msgFromUser);
+                    clientSocket.close();
                     initialize(9001);
                     outBuffer.writeInt(cmdSent);
                     outBuffer.writeInt(lenSent);
@@ -466,7 +469,7 @@ public class TCPClient {
         this.cmdLen[6] = 6;
         this.cmdLen[10] = 0;
         this.cmdLen[11] = -1;
-        this.cmdLen[12] = 0;
+        this.cmdLen[12] = -1;
         this.cmdLen[13] = -1;
         this.cmdLen[14] = 2;
         this.cmdLen[20] = 4;
