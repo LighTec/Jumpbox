@@ -6,7 +6,6 @@
  * - {Please add your name here if you edit code, ty!}
  */
 
-package main;
 
 import com.sun.org.apache.bcel.internal.generic.Select;
 
