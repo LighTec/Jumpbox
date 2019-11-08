@@ -46,6 +46,9 @@ public class MenuController implements Initializable {
             System.out.println(username);
         }
 
-        Main.router.startGame(username, ip);
+        // TODO TCPClient: tcpClient.sendCommand(new Request(1, username));
+        Main.currentUsername = username;
+        Main.serverIp = ip;
+        Main.router.goToLobby();
     }
 }
