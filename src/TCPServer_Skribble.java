@@ -49,14 +49,19 @@ public class TCPServer_Skribble {
     private static boolean DEBUG = true; // debug print statements print if this is true
     private static String[] GAMETYPES = {"skribble"}; // game types available
     private static int MAXNAMELEN = 256;
+    private static int DRAWCHOICEAMT = 3;
+    private static String[] DRAWCHOICES = {"Apple", "Banana", "Coconut", "Durian", "Grapes", "Kiwi", "Lime", "Mango",
+            "Orange", "Starfruit", "Tomato"};
 
     private int port;
     private int[] cmdLen;
     private ArrayList<Player> playerList;
     private boolean terminated = false;
-    private HashMap<SelectionKey, Player> playerNetHash = new HashMap<>(PLAYERMAX); // must be allocated size, so max 16 currently connected players
+    private HashMap<Integer, Player> playerNetHash = new HashMap<>(PLAYERMAX); // must be allocated size, so max 16 currently connected players
     private ByteBuffer inBuffer = null;
     private CharBuffer cBuffer = null;
+    private ArrayList<Integer> playerKeys = new ArrayList<>();
+    private Integer maxIntKey = 0;
 
     private Charset charset = StandardCharsets.US_ASCII;
     private CharsetEncoder encoder = charset.newEncoder();
@@ -156,18 +161,23 @@ public class TCPServer_Skribble {
                         cchannel.configureBlocking(false);
                         System.out.println("Accepted a connection from " + cchannel.socket().getInetAddress() + ":" + cchannel.socket().getPort());
 
-                        // Register the new connection for read operation
-                        cchannel.register(selector, SelectionKey.OP_READ);
-
-
                         // creates a new player, with the firstPlayer boolean true if no other players in the hashmap
                         Player newplayer = new Player(this.playerNetHash.isEmpty());
                         // set up a player for this connection
-                        this.playerNetHash.put(key, newplayer);
+                        this.playerKeys.add(this.maxIntKey);
+                        this.playerNetHash.put(this.maxIntKey, newplayer);
 
+                        //key.attach(this.maxIntKey); // attach an key to the key because a key is not a key if it does not contain a key within the key.
+                        // Register the new connection for read operation
+                        cchannel.register(selector, SelectionKey.OP_READ, this.maxIntKey);
+
+                        this.maxIntKey++;
                     }else{
                         SocketChannel cchannel = (SocketChannel)key.channel();
-                        Player cplayer = this.playerNetHash.get(key); // player for this connection
+
+                        Player cplayer = this.playerNetHash.get(key.attachment()); // player for this connection
+                        Integer intkey = (Integer)key.attachment();
+
                         if (key.isReadable()){
                             Socket socket = cchannel.socket(); // never used, can delete
 
@@ -187,19 +197,23 @@ public class TCPServer_Skribble {
                                 System.out.println("CMD received: " + cmdNum);
                             }
                             int len = this.cmdLen[cmdNum]; // command length
-                            byte[] pktBytes = new byte[len]; // the command data
-                            if(len == -2){
+                            byte[] pktBytes;
+                            if (len == -2) {
                                 inBuffer.flip();
                                 inBuffer.putInt(4);
                                 inBuffer.putInt(4);
                                 inBuffer.flip();
+                                len = 0;
                                 // send an error to the client
-                            }else if(len == -1) {
+                            } else if (len == -1) {
                                 len = inBuffer.getInt();
-                            }else{
-                                for (int i = 0; i < len; i++) {
-                                    pktBytes[i] = inBuffer.get();
+                                if(DEBUG){
+                                    System.out.println("Variable length: " + len);
                                 }
+                            }
+                            pktBytes = new byte[len]; // the command data
+                            for (int i = 0; i < len; i++) {
+                                pktBytes[i] = inBuffer.get();
                             }
                             inBuffer.flip(); // done reading, flip back to write for output
 
@@ -230,10 +244,10 @@ public class TCPServer_Skribble {
                                     break;
                                 case 1:
                                     cplayer.setUsername(byteArrToString(pktBytes)); // update player name
-                                    this.playerNetHash.replace(key, cplayer); // update hashmap player
+                                    this.playerNetHash.replace(intkey, cplayer); // update hashmap player
                                     break;
                                 case 2:
-                                    this.playerNetHash.remove(key); // remove player from list
+                                    this.playerNetHash.remove(intkey); // remove player from list
                                     break;
                                 case 3:
                                 case 6:
@@ -274,11 +288,11 @@ public class TCPServer_Skribble {
                                 case 30:
                                     int totalLen = 0;
                                     String sendStr = "";
-                                    Set<SelectionKey> keyset = this.playerNetHash.keySet();
+                                    Set<Integer> keyset = this.playerNetHash.keySet();
                                     String[] nameArr = new String[keyset.size()];
                                     int[] scoreArr = new int[keyset.size()];
                                     int it = 0;
-                                    for(SelectionKey k : keyset){
+                                    for(Integer k : keyset){
                                         Player p = this.playerNetHash.get(k);
                                         nameArr[it] = p.getUsername();
                                         scoreArr [it] = p.getScore();
@@ -375,7 +389,7 @@ public class TCPServer_Skribble {
         this.cmdLen[6] = 6;
         this.cmdLen[10] = 0;
         this.cmdLen[11] = -1;
-        this.cmdLen[12] = 0;
+        this.cmdLen[12] = -1;
         this.cmdLen[13] = -1;
         this.cmdLen[14] = 2;
         this.cmdLen[20] = 4;
@@ -401,4 +415,6 @@ public class TCPServer_Skribble {
         this.cmdLen[54] = -1;
     }
     // ####### NETWORK MANAGEMENT CODE END
+
+    // ###### GAME FUNCTIONS BEGIN
 }
