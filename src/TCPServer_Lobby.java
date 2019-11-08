@@ -34,6 +34,10 @@ public class TCPServer_Lobby {
     private String selectedGame = "";
     private boolean gameStarted = false;
 
+    private Charset charset = StandardCharsets.US_ASCII;
+    private CharsetEncoder encoder = charset.newEncoder();
+    private CharsetDecoder decoder = charset.newDecoder();
+
     public TCPServer_Lobby(){
         this.playerList = new ArrayList<>();
         this.initCmdLen();
@@ -64,11 +68,6 @@ public class TCPServer_Lobby {
         // Try to open a server socket on the given port
         // Note that we can't choose a port less than 1023 if we are not
         // privileged users (root)
-
-        // set up encoder and decoder for string translation
-        Charset charset = StandardCharsets.US_ASCII;
-        CharsetEncoder encoder = charset.newEncoder();
-        CharsetDecoder decoder = charset.newDecoder();
 
         // Initialize the selector
         Selector selector = null;
@@ -195,7 +194,7 @@ public class TCPServer_Lobby {
                                 inBuffer.flip(); // done reading, flip back to write for output
 
                                 if(DEBUG){
-                                    System.out.println(Arrays.toString(pktBytes));
+                                    System.out.println(byteArrToString(pktBytes));
                                 }
 
                                 int z = 0;
@@ -227,7 +226,7 @@ public class TCPServer_Lobby {
                                         z = cchannel.write(inBuffer); // write invalid command error, cmd 11 is for clients only
                                         break;
                                     case 1:
-                                        cplayer.setUsername(Arrays.toString(pktBytes)); // update player name
+                                        cplayer.setUsername(byteArrToString(pktBytes)); // update player name
                                         this.playerNetHash.replace(key, cplayer); // update hashmap player
                                         break;
                                     case 2:
@@ -242,11 +241,11 @@ public class TCPServer_Lobby {
                                         z = cchannel.write(inBuffer); // write not yet implemented error for reconnection
                                         break;
                                     case 4:
-                                        System.out.println("Error received: " + Arrays.toString(pktBytes)); // print error
+                                        System.out.println("Error received: " + byteArrToString(pktBytes)); // print error
                                         break;
                                     case 5:
                                         if(DEBUG){
-                                            System.out.println("Echoing back.");
+                                            System.out.println("Echoing back: " + byteArrToString(pktBytes));
                                         }
                                         inBuffer.putInt(5);
                                         inBuffer.putInt(len);
@@ -273,7 +272,7 @@ public class TCPServer_Lobby {
                                         break;
                                     case 13:
                                         if(cplayer.isFirstPlayer()) {
-                                            String gameNameStr = Arrays.toString(pktBytes);
+                                            String gameNameStr = byteArrToString(pktBytes);
                                             boolean validGame = false;
                                             for(String gam : this.GAMETYPES){
                                                 if(gam.equals(gameNameStr)){
@@ -328,7 +327,7 @@ public class TCPServer_Lobby {
                                         }
                                         break;
                                     case 33:
-                                        cplayer.setUsername(Arrays.toString(pktBytes));
+                                        cplayer.setUsername(byteArrToString(pktBytes));
                                         this.playerNetHash.replace(key,cplayer);
                                         break;
                                     default:
@@ -376,20 +375,33 @@ public class TCPServer_Lobby {
         }
     }
 
+    private String byteArrToString(byte[] inBytes){
+
+        ByteBuffer inBuffer = ByteBuffer.allocateDirect(inBytes.length);
+        CharBuffer cBuffer = CharBuffer.allocate(inBytes.length);
+
+        inBuffer.put(inBytes);
+        inBuffer.flip();
+
+        this.decoder.decode(inBuffer, cBuffer, false);
+        cBuffer.flip();
+        return cBuffer.toString();
+    }
+
     private void initCmdLen(){
         this.cmdLen = new int[256];
         Arrays.fill(this.cmdLen, -2);
         // manually init valid commands
         this.cmdLen[1] = -1; // -1 == n length
         this.cmdLen[2] = 0;
-        this.cmdLen[3] = 0;
+        this.cmdLen[3] = -1;
         this.cmdLen[4] = 4;
         this.cmdLen[5] = -1;
         this.cmdLen[6] = 6;
         this.cmdLen[10] = 0;
-        this.cmdLen[11] = 4;
+        this.cmdLen[11] = -1;
         this.cmdLen[12] = 0;
-        this.cmdLen[13] = 4;
+        this.cmdLen[13] = -1;
         this.cmdLen[14] = 2;
         this.cmdLen[20] = 4;
         this.cmdLen[21] = -1;
@@ -402,6 +414,7 @@ public class TCPServer_Lobby {
         this.cmdLen[31] = -1;
         this.cmdLen[32] = 0;
         this.cmdLen[33] = -1;
+        this.cmdLen[34] = -1;
         this.cmdLen[40] = 0;
         this.cmdLen[41] = -1;
         this.cmdLen[42] = -1;

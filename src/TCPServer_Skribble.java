@@ -253,7 +253,35 @@ public class TCPServer_Skribble {
                                     // TODO
                                     break;
                                 case 30:
-                                    // TODO
+                                    int totalLen = 0;
+                                    String sendStr = "";
+                                    Set<SelectionKey> keyset = this.playerNetHash.keySet();
+                                    String[] nameArr = new String[keyset.size()];
+                                    int[] scoreArr = new int[keyset.size()];
+                                    int it = 0;
+                                    for(SelectionKey k : keyset){
+                                        Player p = this.playerNetHash.get(k);
+                                        nameArr[it] = p.getUsername();
+                                        scoreArr [it] = p.getScore();
+                                        it++;
+                                        totalLen += 6 + p.getUsername().length();
+                                    }
+
+                                    for(int i = 0; i < keyset.size(); i++){
+
+                                        // put name,score in buffer
+                                        cBuffer = CharBuffer.allocate(MAXNAMELEN);
+                                        cBuffer.clear();
+                                        cBuffer.put(nameArr[i] + "," + scoreArr[i]);
+                                        cBuffer.flip();
+                                        inBuffer.put(encoder.encode(cBuffer));
+                                        cBuffer.flip();
+
+                                        // end entry
+                                        inBuffer.putChar('\n');
+
+                                        z = cchannel.write(inBuffer);
+                                    }
                                     break;
                                 case 33:
                                     // TODO
@@ -309,14 +337,14 @@ public class TCPServer_Skribble {
         // manually init valid commands
         this.cmdLen[1] = -1; // -1 == n length
         this.cmdLen[2] = 0;
-        this.cmdLen[3] = 0;
+        this.cmdLen[3] = -1;
         this.cmdLen[4] = 4;
         this.cmdLen[5] = -1;
         this.cmdLen[6] = 6;
         this.cmdLen[10] = 0;
-        this.cmdLen[11] = 4;
+        this.cmdLen[11] = -1;
         this.cmdLen[12] = 0;
-        this.cmdLen[13] = 4;
+        this.cmdLen[13] = -1;
         this.cmdLen[14] = 2;
         this.cmdLen[20] = 4;
         this.cmdLen[21] = -1;
@@ -329,6 +357,7 @@ public class TCPServer_Skribble {
         this.cmdLen[31] = -1;
         this.cmdLen[32] = 0;
         this.cmdLen[33] = -1;
+        this.cmdLen[34] = -1;
         this.cmdLen[40] = 0;
         this.cmdLen[41] = -1;
         this.cmdLen[42] = -1;
@@ -338,6 +367,6 @@ public class TCPServer_Skribble {
         this.cmdLen[52] = -1;
         this.cmdLen[53] = -1;
         this.cmdLen[54] = -1;
-
     }
+    // ####### NETWORK MANAGEMENT CODE END
 }
