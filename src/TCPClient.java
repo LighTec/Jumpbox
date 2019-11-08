@@ -136,6 +136,7 @@ public class TCPClient {
                 // send game leader
                 case 12:
                     player = new Player(true);
+                    playerName = msgReceived;
                     player.setUsername(playerName);
                     sentObj = new Object[1];
                     sentObj[0] = player;
@@ -143,7 +144,7 @@ public class TCPClient {
                     lobbyController.sendCommand(request);
                     break;
                 case 14: // send game port
-                    Object gamePort = new Short(messageReceivedShort);
+                    Object gamePort = messageReceivedShort;
                     sentObj = new Object[1];
                     sentObj[0] = gamePort;
                     request = new Request(14, sentObj);
@@ -276,7 +277,7 @@ public class TCPClient {
             switch (cmdFromUser) {
 
                 case 1: //initial connection
-                    cmdSent = 1;
+                    cmdSent = 5;
                     msgFromUser = (String) request.arg[0];
                     playerName = msgFromUser;
                     ip = (String) request.arg[1];

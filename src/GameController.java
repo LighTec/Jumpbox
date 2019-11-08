@@ -41,7 +41,7 @@ public class GameController implements Initializable {
     private ChatBox chatBox;
     private DrawingCanvas canvas;
     private ArrayList<Player> players;
-    private TCPClient tcpClient;
+    private TCPClient tcpClient = Main.tcpClient;
 
     // resets every round
     private int timeRemaining;
