@@ -260,6 +260,8 @@ public class TCPServer_Lobby {
                                         if(DEBUG){
                                             System.out.println("Echoing back: " + new String(pktBytes, StandardCharsets.UTF_8));
                                         }
+                                        inBuffer.putInt(5);
+                                        inBuffer.putInt(len);
                                         inBuffer.put(pktBytes);
                                         inBuffer.flip();
                                         z = cchannel.write(inBuffer); // echo back
