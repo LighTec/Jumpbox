@@ -27,24 +27,13 @@ public class Router {
         primaryStage.show();
     }
 
-    public void startGame(String username, String serverIp) {
-        FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("gamemenu.fxml")
-        );
-        primaryStage.setTitle("Game");
-        try {
-            primaryStage.setScene(new Scene(
-                    loader.load()
-            ));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void goToLobby() {
+        showPage("Game", "lobby.fxml");
+    }
 
-        GameController controller = new GameController();
-        controller.initData(username, serverIp);
+    public void startGame() {
+        showPage("Game", "gamemenu.fxml");
 
-        loader.setController(controller);
-        primaryStage.show();
     }
 
 }

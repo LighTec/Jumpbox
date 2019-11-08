@@ -5,6 +5,8 @@ public class Player {
     private boolean isDrawer;
     private int score;
 
+    public Player() {}
+
     public Player(String username, String macAddr, boolean isFirstPlayer) {
         this.username = username;
         this.macAddr = macAddr;
