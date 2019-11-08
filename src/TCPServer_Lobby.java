@@ -1,3 +1,23 @@
+/*
+ * A TCP server for the game project 'JumpBox"
+ * By CPSC 441 Fall 2019 Group 6
+ * Writers:
+ * -  Kell Larson
+ * - {Please add your name here if you edit code, ty!}
+ */
+
+/*
+IMPORTANT STUFF FOR WHEN WRITING CLIENT:
+- buffer size of 64000
+- commands are integers
+ */
+
+/*
+TODO:
+- finish cmd stuff
+- lobby loop
+- run the skribble server
+ */
 
 /*
  * A TCP server for the game project 'JumpBox"
@@ -152,11 +172,11 @@ public class TCPServer_Lobby {
                         this.playerKeys.add(this.maxIntKey);
                         this.playerNetHash.put(this.maxIntKey, newplayer);
 
-                        key.attach(this.maxIntKey); // attach an key to the key because a key is not a key if it does not contain a key within the key.
+                        //key.attach(this.maxIntKey); // attach an key to the key because a key is not a key if it does not contain a key within the key.
+                        // Register the new connection for read operation
+                        cchannel.register(selector, SelectionKey.OP_READ, this.maxIntKey);
 
                         this.maxIntKey++;
-                        // Register the new connection for read operation
-                        cchannel.register(selector, SelectionKey.OP_READ);
                     }else{
                         SocketChannel cchannel = (SocketChannel)key.channel();
 
