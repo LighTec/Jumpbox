@@ -1,5 +1,7 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.function.Function;
 
 public class GameController {
 
@@ -22,6 +24,57 @@ public class GameController {
     private String[] wordOptions;
 
     public GameController(){}
+
+    public void sendCommand(Request request) {
+        int command = request.command;
+        switch (command) {
+            case 1:
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+            case 4:
+                break;
+            case 5:
+                break;
+
+
+            case 10:
+                break;
+            case 11:
+                break;
+            case 12:
+                break;
+            case 13:
+                break;
+            case 14:
+                break;
+
+
+            case 20:
+                break;
+            case 21:
+                break;
+            case 22:
+                break;
+            case 23:
+                break;
+            case 24:
+                break;
+            case 25:
+                break;
+            case 26:
+                break;
+
+                //TODO
+
+        }
+    }
+
+    private void initialConnection(String name) {
+
+    }
 
     public GameController(ArrayList<Player> players, TCPClient tcpClient) {
         this.chatBox = new ChatBox();
