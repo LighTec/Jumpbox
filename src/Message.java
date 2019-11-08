@@ -1,19 +1,22 @@
-public class Message implements Comparable<Message>{
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class Message{
 
     private String messageBody;
-    private Long timestamp;
+    private String timestamp;
     private String sentBy;
 
     public Message(String messageBody, String sentBy) {
         this.messageBody = messageBody;
         this.sentBy = sentBy;
-        this.timestamp = System.currentTimeMillis();
+
+        Date date = new Date();
+        date.setTime(989238232);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-mm-dd");
+        this.timestamp = sdf.format(date);
     }
 
-    @Override
-    public int compareTo(Message o) {
-        return this.timestamp.compareTo(o.timestamp);
-    }
 
     public String getMessageBody() {
         return messageBody;
@@ -21,5 +24,9 @@ public class Message implements Comparable<Message>{
 
     public String getSentBy() {
         return sentBy;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
     }
 }
