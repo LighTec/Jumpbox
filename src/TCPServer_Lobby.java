@@ -151,8 +151,6 @@ public class TCPServer_Lobby {
                 Set readyKeys = selector.selectedKeys();
                 Iterator readyItor = readyKeys.iterator();
 
-                Iterator pkeys = this.playerKeys.iterator();
-
                 // Walk through the ready set
                 while (readyItor.hasNext()) {
                     // Get key from set
@@ -272,6 +270,7 @@ public class TCPServer_Lobby {
                                         System.out.println("===========================================================");
 //                                        inBuffer.put(pktBytes);
                                         inBuffer.flip();
+
                                         z = cchannel.write(inBuffer);
                                         break;
                                     case 2:

@@ -34,6 +34,8 @@ public class GameController implements Initializable {
     private Label gameTitle;
     @FXML
     private Label gameStatusText;
+    @FXML
+    private Button clearDrawing;
 
     private String currentPlayerName = Main.currentUsername;
     private String serverIp = Main.serverIp;
@@ -79,6 +81,7 @@ public class GameController implements Initializable {
         }
 
         chatField.setOnAction(this::sendMessage);
+        clearDrawing.setOnAction(this.canvas::resetCanvas);
 
         Group root = new Group();
         Scene s = new Scene(root, 300, 300, Color.BLACK);
