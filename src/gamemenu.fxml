@@ -39,7 +39,7 @@
                   <AnchorPane fx:id="canvasParent" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="40.0">
                   </AnchorPane>
             <Label fx:id="gameTitle" alignment="CENTER" font="$x1" layoutX="14.0" layoutY="14.0" style="&#10;" text="Draw here" textAlignment="CENTER" textFill="$x2" wrapText="false" />
-                  <Button disable="true" fx:id="clearDrawing" layoutX="108.0" layoutY="15.0" mnemonicParsing="false" text="Clear Drawing" />
+                  <Button fx:id="clearDrawing" layoutX="108.0" layoutY="15.0" mnemonicParsing="false" text="Clear Drawing" />
                   <ColorPicker disable="true" layoutX="207.0" layoutY="15.0" />
           </children>
         </AnchorPane>

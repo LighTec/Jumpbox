@@ -43,7 +43,7 @@ public class LobbyController implements Initializable {
         switch (command) {
             case 12: // Set game leader
                 Player leader = (Player) request.arg[0];
-                if (this.currentPlayerName.equals(leader.getUsername())) {
+                if (this.currentPlayerName.equals(leader.getUsername().trim())) {
                     Button startGameButton = new Button("Start Game");
                     startGameButton.setOnAction(this::onStartGame);
                     rightPane.getChildren().add(startGameButton);

@@ -187,6 +187,7 @@ public class TCPServer_Lobby {
 
                             // Open input and output streams
                             inBuffer = ByteBuffer.allocateDirect(BUFFERSIZE);
+
                             // Read from socket
                             int bytesRecv = cchannel.read(inBuffer);
                             if (bytesRecv <= 0)
@@ -216,11 +217,19 @@ public class TCPServer_Lobby {
                                         System.out.println("Variable length: " + len);
                                     }
                                 }
+
                                 pktBytes = new byte[len]; // the command data
-                                for (int i = 0; i < len; i++) {
-                                    pktBytes[i] = inBuffer.get();
-                                }
-                                inBuffer.flip(); // done reading, flip back to write for output
+                                cBuffer = CharBuffer.allocate(MAXNAMELEN);
+                                decoder.decode(inBuffer, cBuffer, false);
+                                cBuffer.flip();
+                                String message = cBuffer.toString();
+                                System.out.println("Message: " + message);
+//                                for (int i = 0; i < len; i++) {
+//                                    pktBytes[i] = inBuffer.get();
+//                                    System.out.println("pktByte: " + pktBytes[i]);
+//                                }
+//                                inBuffer.flip(); // done reading, flip back to write for output
+//                                inBuffer.clear();
 
                                 if(DEBUG){
                                     System.out.println(byteArrToString(pktBytes));
@@ -242,20 +251,21 @@ public class TCPServer_Lobby {
                                     case 32:
                                     case 40:
                                     case 41:
-                                    case 42:
                                     case 43:
                                     case 50:
                                     case 51:
                                     case 52:
                                     case 53:
                                     case 54:
+                                        inBuffer.flip();
                                         inBuffer.putInt(4);
                                         inBuffer.putInt(4);
                                         inBuffer.flip();
                                         z = cchannel.write(inBuffer); // write invalid command error, cmd 11 is for clients only
                                         break;
                                     case 1:
-                                        cplayer.setUsername(byteArrToString(pktBytes)); // update player name
+                                        inBuffer.flip();
+                                        cplayer.setUsername(message); // update player name
                                         if(cplayer.isFirstPlayer()){
                                             this.leaderName = cplayer.getUsername();
                                         }
@@ -264,8 +274,8 @@ public class TCPServer_Lobby {
                                         System.out.println("===========================================================");
                                         inBuffer.putInt(12);
                                         inBuffer.putInt(this.leaderName.length());
-                                        System.out.println(this.leaderName.length());
-                                        inBuffer.put(this.StringToByteArr(this.leaderName));
+                                        System.out.println(this.leaderName);
+                                        inBuffer.put(this.StringToByteArr(message));
 //                                        System.out.println(this.StringToByteArr(this.leaderName)[0]);
                                         System.out.println("===========================================================");
 //                                        inBuffer.put(pktBytes);
@@ -277,8 +287,11 @@ public class TCPServer_Lobby {
                                         this.playerNetHash.remove(intkey); // remove player from list
                                         break;
                                     case 3:
+                                        // TODO CONTINUE HERE
+                                        break;
                                     case 6:
                                         // TODO get reconnection working based off username
+                                        inBuffer.flip();
                                         inBuffer.putInt(4);
                                         inBuffer.putInt(6);
                                         inBuffer.flip();
@@ -291,6 +304,7 @@ public class TCPServer_Lobby {
                                         if(DEBUG){
                                             System.out.println("Echoing back: " + byteArrToString(pktBytes));
                                         }
+                                        inBuffer.flip();
                                         inBuffer.putInt(5);
                                         inBuffer.putInt(len);
                                         inBuffer.put(pktBytes);
@@ -298,6 +312,7 @@ public class TCPServer_Lobby {
                                         z = cchannel.write(inBuffer); // echo back
                                         break;
                                     case 10:
+                                        inBuffer.flip();
                                         inBuffer.putInt(11); // return command number
                                         int lengthGameTypes = 0;
                                         String gameStr = "";
@@ -327,12 +342,14 @@ public class TCPServer_Lobby {
                                             if(validGame){
                                                 this.selectedGame = gameNameStr;
                                             }else{
+                                                inBuffer.flip();
                                                 inBuffer.putInt(4);
                                                 inBuffer.putInt(4);
                                                 inBuffer.flip();
                                                 z = cchannel.write(inBuffer); // write invalid command error, did not return a game name
                                             }
                                         }else{
+                                            inBuffer.flip();
                                             inBuffer.putInt(4);
                                             inBuffer.putInt(3);
                                             inBuffer.flip();
@@ -354,6 +371,7 @@ public class TCPServer_Lobby {
                                             totalLen += 6 + p.getUsername().length();
                                         }
 
+                                        inBuffer.flip();
                                         for(int i = 0; i < keyset.size(); i++){
 
                                             // put name,score in buffer
@@ -374,7 +392,28 @@ public class TCPServer_Lobby {
                                         cplayer.setUsername(byteArrToString(pktBytes));
                                         this.playerNetHash.replace(intkey,cplayer);
                                         break;
+                                    case 42:
+                                        inBuffer.flip();
+                                        inBuffer.putInt(43);
+                                        String[] args = message.split(",");
+
+                                        System.out.println("Command 42: MESSAGE: " + message);
+                                        String timestamp = args[0];
+                                        System.out.println("Command 42: " + timestamp);
+                                        String username = args[1];
+                                        System.out.println("Command 42: " + message);
+                                        String messageBody = args[2];
+
+                                        // TODO store message
+
+                                        inBuffer.putInt(message.length());
+                                        inBuffer.put(this.StringToByteArr(username + "," + messageBody));
+                                        inBuffer.flip();
+
+                                        z = cchannel.write(inBuffer);
+                                        break;
                                     default:
+                                        inBuffer.flip();
                                         inBuffer.putInt(4);
                                         inBuffer.putInt(99);
                                         inBuffer.flip();

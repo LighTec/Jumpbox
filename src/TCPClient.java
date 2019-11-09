@@ -12,6 +12,7 @@ public class TCPClient {
     private static String macAddress;
     private DataOutputStream outBuffer;
     private DataInputStream inBuffer;
+    private PrintWriter printWriter;
     private Socket clientSocket;
     private String ip;
     private int port;
@@ -85,9 +86,11 @@ public class TCPClient {
         BufferedReader inBuffer =
                 new BufferedReader(new
                         InputStreamReader(clientSocket.getInputStream()));*/
+
         try {
             outBuffer = new DataOutputStream(clientSocket.getOutputStream());
             inBuffer = new DataInputStream(clientSocket.getInputStream());
+            printWriter = new PrintWriter(clientSocket.getOutputStream(), true);
         } catch (IOException e) {
             System.out.println(e);
         }
@@ -106,6 +109,7 @@ public class TCPClient {
                 //send an error
             } else if (lenReceived == -1) {
                 lenReceived = inBuffer.readInt();
+                System.out.println("Length received: "+lenReceived);
                 pktBytes = new byte[lenReceived];
                 inBuffer.read(pktBytes);
                 msgReceived = new String(pktBytes, StandardCharsets.UTF_8);
@@ -233,7 +237,7 @@ public class TCPClient {
                 case 43: //new message from server to client
                     String[] chat = msgReceived.split(",");
                     //new Message(messagebody, sentBye)
-                    message = new Message(chat[0], chat[1]);
+                    message = new Message(chat[1], chat[0]);
                     sentObj = new Object[1];
                     sentObj[0] = message;
                     request = new Request(43, sentObj);
@@ -288,7 +292,8 @@ public class TCPClient {
                     System.out.println(lenSent);
                     outBuffer.writeInt(cmdSent);
                     outBuffer.writeInt(lenSent);
-                    outBuffer.writeBytes(msgFromUser + "\n");
+//                    outBuffer.writeBytes(msgFromUser + "\n");
+                    printWriter.println(msgFromUser);
 
                     //waiting for response from server with command send game leader 12
                     System.out.println("running handleServerCommand...");
@@ -310,11 +315,10 @@ public class TCPClient {
                     playerName = msgFromUser;
                     lenSent = msgFromUser.length();
                     System.out.println(msgFromUser);
-                    clientSocket.close();
-                    initialize(9001);
                     outBuffer.writeInt(cmdSent);
                     outBuffer.writeInt(lenSent);
-                    outBuffer.writeBytes(msgFromUser + "\n");
+//                    outBuffer.writeBytes(msgFromUser + "\n");
+                    printWriter.println(msgFromUser);
                     break;
 
                 case 10: //get game type
@@ -344,7 +348,8 @@ public class TCPClient {
                     System.out.println(msgFromUser);
                     outBuffer.writeInt(cmdSent);
                     outBuffer.writeInt(lenSent);
-                    outBuffer.writeBytes(msgFromUser);
+//                    outBuffer.writeBytes(msgFromUser);
+                    printWriter.println(msgFromUser + "\n");
                     break;
 
                 case 30: //get players and scores
@@ -365,6 +370,7 @@ public class TCPClient {
 
                     cmdSent = 40;
                     outBuffer.writeInt(cmdSent);
+                    printWriter.println(msgFromUser + "\n");
 
                     //wait for response from server with command 41
                     handleServerCommand();
@@ -373,15 +379,16 @@ public class TCPClient {
                 case 42: //send new message
                     cmdSent = 42;
                     Message message = (Message) request.arg[0];
-                    //String userName = message.getSentBy();
+                    String userName = message.getSentBy();
                     String messageBody = message.getMessageBody();
                     String timeStamp = message.getTimestamp();
-                    msgFromUser = timeStamp + "," + messageBody;
+                    msgFromUser = timeStamp + "," + userName + "," + messageBody;
                     System.out.println(msgFromUser);
                     lenSent = msgFromUser.length();
                     outBuffer.writeInt(cmdSent);
                     outBuffer.writeInt(lenSent);
-                    outBuffer.writeBytes(msgFromUser + "\n");
+//                    outBuffer.writeBytes(msgFromUser + "\n");
+                    printWriter.println(msgFromUser);
 
                     //wait for server to reply back the message to all client with command 43
                     handleServerCommand();
@@ -394,7 +401,8 @@ public class TCPClient {
                     System.out.println(msgFromUser);
                     outBuffer.writeInt(cmdSent);
                     outBuffer.writeInt(lenSent);
-                    outBuffer.writeBytes(msgFromUser + "\n");
+//                    outBuffer.writeBytes(msgFromUser + "\n");
+                    printWriter.println(msgFromUser + "\n");
 
                     //wait for server to reply back the frame to all client with command
                     handleServerCommand();

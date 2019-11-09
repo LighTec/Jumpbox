@@ -61,7 +61,6 @@ public class GameController implements Initializable {
         TextField source = (TextField) e.getSource();
         String message = source.getText();
         System.out.println(message);
-        chatBoxListView.getItems().add(0, source.getText());
         source.clear();
 
         Message newMessage = new Message(message, currentPlayerName);
@@ -80,12 +79,13 @@ public class GameController implements Initializable {
             e.printStackTrace();
         }
 
+        final Canvas canvas = new Canvas(250,250);
         chatField.setOnAction(this::sendMessage);
-        clearDrawing.setOnAction(this.canvas::resetCanvas);
+
+//        clearDrawing.setOnAction(this.canvas::resetCanvas);
 
         Group root = new Group();
         Scene s = new Scene(root, 300, 300, Color.BLACK);
-        final Canvas canvas = new Canvas(250,250);
 
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
@@ -197,7 +197,7 @@ public class GameController implements Initializable {
             case 43: // New message
                 Message newMessage = (Message) request.arg[0];
                 String formatted = newMessage.getSentBy() + ": " + newMessage.getMessageBody();
-                chatObservable.add(formatted);
+                chatBoxListView.getItems().add(0, formatted.trim());
                 break;
 
 
