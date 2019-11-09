@@ -168,6 +168,7 @@ public class TCPServer_Lobby {
                         // creates a new player, with the firstPlayer boolean true if no other players in the hashmap
                         Player newplayer = new Player(this.playerNetHash.isEmpty());
                         // set up a player for this connection
+                        newplayer.setChannel(cchannel);
                         this.playerKeys.add(this.maxIntKey);
                         this.playerNetHash.put(this.maxIntKey, newplayer);
 
@@ -254,6 +255,16 @@ public class TCPServer_Lobby {
                                     case 43:
                                     case 50:
                                     case 51:
+                                        // TODO need to send to all clients
+                                        inBuffer.flip();
+                                        inBuffer.putInt(53);
+                                        System.out.println("COMMAND 51: " + message);
+                                        inBuffer.putInt(message.length());
+                                        inBuffer.put(this.StringToByteArr(message));
+                                        inBuffer.flip();
+
+                                        z = cchannel.write(inBuffer);
+                                        break;
                                     case 52:
                                     case 53:
                                     case 54:
@@ -287,7 +298,20 @@ public class TCPServer_Lobby {
                                         this.playerNetHash.remove(intkey); // remove player from list
                                         break;
                                     case 3:
-                                        // TODO CONTINUE HERE
+                                        // TODO need send to all clients
+                                        inBuffer.flip();
+                                        inBuffer.putInt(23);
+                                        String drawer = "";
+                                        for (Integer i : playerNetHash.keySet()) {
+                                            drawer = playerNetHash.get(i).getUsername();
+                                        }
+
+                                        System.out.println("sending drawer: " + drawer);
+                                        inBuffer.putInt(drawer.length());
+                                        inBuffer.put(this.StringToByteArr(drawer));
+                                        inBuffer.flip();
+
+                                        z = cchannel.write(inBuffer);
                                         break;
                                     case 6:
                                         // TODO get reconnection working based off username

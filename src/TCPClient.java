@@ -169,11 +169,14 @@ public class TCPClient {
                     break;
                 case 23: //send draw leader
                     player = new Player(true);
+                    System.out.println("Drawer: " + playerName);
                     player.setUsername(playerName);
                     sentObj = new Object[1];
                     sentObj[0] = player;
                     request = new Request(23, sentObj);
                     gameController.sendCommand(request);
+
+                    // TODO CONTINUE HERE ASK SERVER FOR DRAW OPTIONS
                     break;
                 case 24: //guessed correctly
                     sentObj = null;
@@ -319,6 +322,8 @@ public class TCPClient {
                     outBuffer.writeInt(lenSent);
 //                    outBuffer.writeBytes(msgFromUser + "\n");
                     printWriter.println(msgFromUser);
+
+                    handleServerCommand();
                     break;
 
                 case 10: //get game type

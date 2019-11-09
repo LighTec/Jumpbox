@@ -73,26 +73,9 @@ public class GameController implements Initializable {
         this.chatBoxListView.setItems(chatObservable);
         this.playerListView.setItems(playersObservable);
 
-        try {
-            DrawingCanvas canvastest = new DrawingCanvas(canvasParent);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        final Canvas canvas = new Canvas(250,250);
         chatField.setOnAction(this::sendMessage);
 
-//        clearDrawing.setOnAction(this.canvas::resetCanvas);
-
-        Group root = new Group();
-        Scene s = new Scene(root, 300, 300, Color.BLACK);
-
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-
-        gc.setFill(Color.BLUE);
-        gc.fillRect(75,75,100,100);
-
-        root.getChildren().add(canvas);
+        canvas = new DrawingCanvas(this, canvasParent);
 
         // Reconnection
         tcpClient.sendFromUser(new Request(3, new Object[]{currentPlayerName}));
@@ -204,11 +187,16 @@ public class GameController implements Initializable {
             case 50:
                 canvas.resetCanvas();
                 break;
-            case 51:
+            case 53:
                 String coords = (String) request.arg[0];
                 canvas.draw(coords);
                 break;
         }
+    }
+
+    public void updateImage(String coords) {
+        tcpClient.sendFromUser(new Request(51, new Object[]{coords}));
+        System.out.println("CLIENT COORDS:" + coords);
     }
 
     public void newRound() {
@@ -223,11 +211,11 @@ public class GameController implements Initializable {
     }
 
     private void setDrawer(Player drawer) {
-        for (Player p : players) {
-            if (p.getMacAddr().equals(drawer.getMacAddr())) {
-                p.setDrawer(true);
-            }
-        }
+//        for (Player p : players) {
+//            if (p.getMacAddr().equals(drawer.getMacAddr())) {
+//                p.setDrawer(true);
+//            }
+//        }
 
         if (currentPlayerName.equals(drawer.getUsername())) {
             canvas.setDrawable(true);
