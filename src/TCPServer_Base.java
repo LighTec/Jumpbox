@@ -37,8 +37,7 @@ public abstract class TCPServer_Base {
     int intkey;
     SocketChannel cchannel;
     SelectionKey key;
-    Selector readSelector = null;
-    Selector writeSelector = null;
+    Selector selector = null;
 
     public TCPServer_Base(boolean init){
         this.initCmdLen();
@@ -84,8 +83,7 @@ public abstract class TCPServer_Base {
         // privileged users (root)
 
         try {
-            this.readSelector = Selector.open();
-            this.writeSelector = Selector.open();
+            this.selector = Selector.open();
 
             // Create a server channel and make it non-blocking
             ServerSocketChannel channel = ServerSocketChannel.open();
@@ -96,8 +94,7 @@ public abstract class TCPServer_Base {
             channel.socket().bind(isa);
 
             // Register that the server selector is interested in connection requests
-            channel.register(readSelector, SelectionKey.OP_ACCEPT);
-            channel.register(writeSelector, SelectionKey.OP_WRITE);
+            channel.register(selector, SelectionKey.OP_ACCEPT);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -114,14 +111,14 @@ public abstract class TCPServer_Base {
             {
                 // ########## NETWORK MANAGEMENT CODE BEGIN
 
-                if (readSelector.select(500) < 0)
+                if (selector.select(500) < 0)
                 {
                     System.out.println("select() failed");
                     System.exit(1);
                 }
 
                 // Get set of ready sockets
-                Set readyKeys = readSelector.selectedKeys();
+                Set readyKeys = selector.selectedKeys();
                 Iterator readyItor = readyKeys.iterator();
 
                 // Walk through the ready set
@@ -146,9 +143,7 @@ public abstract class TCPServer_Base {
 
                         //key.attach(this.maxIntKey); // attach an key to the key because a key is not a key if it does not contain a key within the key.
                         // Register the new connection for read operation
-                        key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-                        cchannel.register(this.readSelector, SelectionKey.OP_READ, this.maxIntKey);
-                        cchannel.register(this.writeSelector, SelectionKey.OP_WRITE, this.maxIntKey);
+                        cchannel.register(this.selector, (SelectionKey.OP_READ | SelectionKey.OP_WRITE), this.maxIntKey);
 
                         this.maxIntKey++;
                     }else{
@@ -172,7 +167,13 @@ public abstract class TCPServer_Base {
                                 continue;
                             }
                             inBuffer.flip();      // make buffer available for reading
+                            if(DEBUG){
+                                System.out.println("Buffer remaining: " + this.inBuffer.remaining());
+                            }
                             int cmdNum = inBuffer.getInt(); // command number
+                            if(DEBUG){
+                                System.out.println("Buffer remaining: " + this.inBuffer.remaining());
+                            }
                             if(DEBUG) {
                                 System.out.println("CMD received: " + cmdNum);
                             }
@@ -194,13 +195,20 @@ public abstract class TCPServer_Base {
                                 }
                                 pktBytes = new byte[len]; // the command data
                                 for (int i = 0; i < len; i++) {
+                                    if(DEBUG){
+                                        System.out.println("Buffer remaining: " + this.inBuffer.remaining());
+                                    }
                                     pktBytes[i] = inBuffer.get();
                                 }
-                                inBuffer.flip(); // done reading, flip back to write for output
+                                while(this.inBuffer.hasRemaining()){
+                                    this.inBuffer.get();
+                                }
 
                                 if(DEBUG){
-                                    System.out.println(byteArrToString(pktBytes));
+                                    System.out.println("##########" + byteArrToString(pktBytes));
                                 }
+                                inBuffer.flip();
+
                                 if(this.canHandleCommand[cmdNum]){
                                     int z = 0;
                                     switch(cmdNum){
@@ -282,7 +290,7 @@ public abstract class TCPServer_Base {
         }
 
         // close all connections
-        Set keys = readSelector.keys();
+        Set keys = selector.keys();
         Iterator itr = keys.iterator();
         while (itr.hasNext())
         {
@@ -323,17 +331,23 @@ public abstract class TCPServer_Base {
      * @return true if a valid command, false if a not valid command is received or cmd length does not match string length.
      */
     boolean sendUpdates(SelectionKey sender, int cmd, byte[] msg, boolean sendToSender){
+        if(DEBUG){
+            System.out.println("SendUpdate argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + this.byteArrToString(msg) + "\n\tMessage Length: " + msg.length + "\n\tCommand Length: " + cmdLen[cmd] + "\n\t");
+        }
         if(cmdLen[cmd] == -2){
             return false;
         }else if(cmdLen[cmd] != msg.length && cmdLen[cmd] != -1){ // if the command length does not match a fixed length command, return false
-            System.err.println("SendUpdate function used incorrectly. Argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + msg + "\n\tMessage Length:" + msg.length + "\n\tCommand Length: " + cmdLen[cmd] + "\n\t############");
+            System.err.println("SendUpdate function used incorrectly. Argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + this.byteArrToString(msg) + "\n\tMessage Length: " + msg.length + "\n\tCommand Length: " + cmdLen[cmd] + "\n\t############");
             return false;
         }else {
-            for (Object kObj : this.writeSelector.keys()) {
+            for (Object kObj : this.selector.keys()) {
                     SelectionKey k = (SelectionKey) kObj; // cast the key to the correct object
-                    if (k != sender || sendToSender) { // if we send to the sender, then send to all. Otherwise, send to all but the sender.
+                    if ((k != sender || sendToSender) && !k.isAcceptable()) { // if we send to the sender, then send to all. Otherwise, send to all but the sender.
+                        //k.interestOps(SelectionKey.OP_WRITE);
                         SocketChannel cchannelu = (SocketChannel)k.channel(); // create channel
-
+                        if (DEBUG){
+                            System.out.println("Sending to: " + this.playerNetHash.get((Integer)k.attachment()).getUsername());
+                        }
                         this.inBuffer = ByteBuffer.allocateDirect(BUFFERSIZE);
                         inBuffer.putInt(cmd);
                         if (cmdLen[cmd] == -1) {
@@ -348,7 +362,12 @@ public abstract class TCPServer_Base {
                             System.err.println("Failure attempting to send update message to player: " + this.playerNetHash.get((Integer) k.attachment()).getUsername() + "with message: " + msg);
                             e.printStackTrace();
                         }
+                        //k.interestOps(SelectionKey.OP_READ);
                     }
+            }
+            this.inBuffer.flip();
+            if(DEBUG){
+                System.out.println("Done with bulk sending...");
             }
             return true;
         }

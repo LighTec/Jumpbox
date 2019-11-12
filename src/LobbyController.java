@@ -54,6 +54,12 @@ public class LobbyController implements Initializable {
             case 34: // A new player joined the game
                 playersObservable.add((String) request.arg[0]);
                 break;
+            case 31:
+                playersObservable.clear();
+                for (Object o : request.arg) {
+                    playersObservable.add(((Player) o).getUsername());
+                }
+                break;
         }
     }
 

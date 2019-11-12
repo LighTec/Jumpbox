@@ -6,9 +6,10 @@
  * - {Please add your name here if you edit code, ty!}
  */
 
-import java.io.*;
-import java.nio.*;
-import java.util.*;
+import java.io.IOException;
+import java.nio.CharBuffer;
+import java.util.ArrayList;
+import java.util.Set;
 
 public class TCPServer_Lobby extends TCPServer_Base {
 
@@ -38,17 +39,22 @@ public class TCPServer_Lobby extends TCPServer_Base {
                     this.leaderName = cplayer.getUsername();
                 }
                 this.playerNetHash.replace(intkey, cplayer); // update hashmap player
-                inBuffer.putInt(12);
-                inBuffer.putInt(this.leaderName.length());
-                inBuffer.put(this.stringToByteArr(this.leaderName));
+                this.inBuffer.putInt(12);
+                this.inBuffer.putInt(this.leaderName.length());
+                this.inBuffer.put(this.stringToByteArr(this.leaderName));
                 if(DEBUG){
                     System.out.println("===========================================================");
                     System.out.println("Leader length: " + this.leaderName.length());
                     System.out.println("Leader name: " + this.leaderName);
                     System.out.println("===========================================================");
                 }
+                this.inBuffer.flip();
                 z = cchannel.write(inBuffer);
+                this.inBuffer.flip();
                 // send player list to the newly connected player
+                if(DEBUG){
+                    System.out.println("Bytes sent: " + z);
+                }
                 inBuffer.clear(); // new command
                 Set<Integer> keyset1 = this.playerNetHash.keySet();
                 String toSend1 = this.playersToSendList(keyset1);
@@ -56,8 +62,9 @@ public class TCPServer_Lobby extends TCPServer_Base {
                 inBuffer.putInt(toSend1.length());
                 // creates a string in the form of username,score\n for all players, then turns it into a byte array
                 inBuffer.put(this.stringToByteArr(toSend1));
+                this.inBuffer.flip();
                 z = cchannel.write(inBuffer);
-
+                this.inBuffer.flip();
                 String updateMsg = cplayer.getUsername() + ',' + cplayer.getScore() + '\n';
                 this.sendUpdates(key, 34, this.stringToByteArr(updateMsg), false);
 
@@ -133,7 +140,7 @@ public class TCPServer_Lobby extends TCPServer_Base {
             }
             switch(this.selectedGame){
                 case "skribble":
-                    TCPServer_Skribble skribServ = new TCPServer_Skribble(totalPlayerList, this.readSelector, this.playerNetHash, this.disconnectedPlayers, this.maxIntKey);
+                    TCPServer_Skribble skribServ = new TCPServer_Skribble(totalPlayerList, this.selector, this.playerNetHash, this.disconnectedPlayers, this.maxIntKey);
                     skribServ.runServer();
                     break;
                 default:
