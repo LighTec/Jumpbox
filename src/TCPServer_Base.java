@@ -146,6 +146,7 @@ public abstract class TCPServer_Base {
 
                         //key.attach(this.maxIntKey); // attach an key to the key because a key is not a key if it does not contain a key within the key.
                         // Register the new connection for read operation
+                        key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
                         cchannel.register(this.readSelector, SelectionKey.OP_READ, this.maxIntKey);
                         cchannel.register(this.writeSelector, SelectionKey.OP_WRITE, this.maxIntKey);
 
