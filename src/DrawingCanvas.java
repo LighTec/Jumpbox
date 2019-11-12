@@ -1,3 +1,4 @@
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -17,9 +18,11 @@ public class DrawingCanvas
     private GraphicsContext gc;
     private ArrayList<String> cords;
     private boolean drawable;
+    private GameController controller;
 
-    DrawingCanvas(AnchorPane canvasParent) throws InterruptedException {
+    DrawingCanvas(GameController controller, AnchorPane canvasParent) {
         cords = new ArrayList<String>();
+        this.controller = controller;
 
         // Create the Canvas
         canvas = new Canvas(590, 526);
@@ -92,6 +95,7 @@ public class DrawingCanvas
             gc.stroke();
             gc.closePath();
             cords.add(event.getX() + "," + event.getY());
+            controller.updateImage(cords.get(0) + "," + cords.get(1));
             cords.clear();
             test++;
             gc.beginPath();
@@ -107,9 +111,16 @@ public class DrawingCanvas
             gc.stroke();
             gc.closePath();
             cords.add(event.getX() + "," + event.getY());
+            controller.updateImage(cords.get(0) + "," + cords.get(1));
             cords.clear();
             test++;
             System.out.println("total packets:" + test);
         }
     };
+
+    public void resetCanvas(ActionEvent actionEvent)
+    {
+        resetCanvas();
+
+    }
 }

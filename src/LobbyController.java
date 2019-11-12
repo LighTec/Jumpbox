@@ -29,17 +29,13 @@ public class LobbyController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        TCPClient.lobbyController = this;
         this.playerListView.setItems(playersObservable);
         this.currentPlayerName = Main.currentUsername;
         this.serverIp = Main.serverIp;
         this.tcpClient = Main.tcpClient;
 
         tcpClient.sendFromUser(new Request(1, new Object[]{currentPlayerName, serverIp}));
-
-        // TODO TEMPORARY
-        Button startGameButton = new Button("Start Game (debug button)");
-        startGameButton.setOnAction(this::onStartGame);
-        rightPane.getChildren().add(startGameButton);
     }
 
     public void sendCommand(Request request) {
@@ -47,7 +43,7 @@ public class LobbyController implements Initializable {
         switch (command) {
             case 12: // Set game leader
                 Player leader = (Player) request.arg[0];
-                if (this.currentPlayerName.equals(leader.getUsername())) {
+                if (this.currentPlayerName.equals(leader.getUsername().trim())) {
                     Button startGameButton = new Button("Start Game");
                     startGameButton.setOnAction(this::onStartGame);
                     rightPane.getChildren().add(startGameButton);
