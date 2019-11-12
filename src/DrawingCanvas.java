@@ -5,6 +5,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.QuadCurve;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
@@ -82,6 +83,13 @@ public class DrawingCanvas
     private EventHandler<MouseEvent> mouseDown =  new EventHandler<MouseEvent>() {
         @Override
         public void handle(MouseEvent event) {
+            QuadCurve quad = new QuadCurve();
+            quad.setStartX(0.0f);
+            quad.setStartY(50.0f);
+            quad.setEndX(50.0f);
+            quad.setEndY(50.0f);
+            quad.setControlX(25.0f);
+            quad.setControlY(0.0f);
             gc.beginPath();
             gc.moveTo(event.getX(), event.getY());
             cords.add(event.getX() + "," + event.getY());

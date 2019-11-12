@@ -7,23 +7,19 @@
  */
 /*
 TODO:
-1. create global vars: roundsLeft, currentDrawer, roundTimeLeft, roundEnded, drawChoiceAmt
-2. game loop: get player (how?)
-    set as drawer
-    drawer is given choices from dictionary
+2. game loop: get player (how?) -> linkedList, a round would be a single iteration through the list, and a match a single next()
+    set a player as a drawer, send to all their name (same as lobby)
+    drawer is given choices from dictionary (partially complete, must send choices to user. Choice generator complete
     drawer returns chosen choice
     timer begins for all
     drawer draws frames
-        all other users must gets the frames pushed to them
+        all other users must gets the frames pushed to them (complete)
     users guess
-        check is guess is correct, update score (and send updated score to all others) if right
+        check is guess is correct, update score (and send updated score to all others) if right (partially complete, need score heuristic)
     round ends
-    let drawer know they can no longer draw
-    select new drawer
+    select new drawer via linkedlist(?)
     keep looping until roundsLeft = 0
-    tell users to go back to lobby
-    wait 3 sec
-    terminate self
+    if roundsLeft == 0, terminate self
  */
 
 import java.io.IOException;
@@ -107,8 +103,9 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     }else{
                         inBuffer.putInt(4);
                         inBuffer.putInt(5);
-                        inBuffer.flip();
+                        this.inBuffer.flip();
                         z = cchannel.write(inBuffer); // write cannot pick draw choice
+                        this.inBuffer.flip();
                     }
                     break;
                 case 23:
@@ -148,8 +145,9 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     }else{
                         inBuffer.putInt(4);
                         inBuffer.putInt(2);
-                        inBuffer.flip();
+                        this.inBuffer.flip();
                         z = cchannel.write(inBuffer); // write cannot draw
+                        this.inBuffer.flip();
                     }
                     break;
                 case 52:
@@ -160,8 +158,9 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                 default:
                     inBuffer.putInt(4);
                     inBuffer.putInt(99);
-                    inBuffer.flip();
+                    this.inBuffer.flip();
                     z = cchannel.write(inBuffer); // write unknown error
+                    this.inBuffer.flip();
                     break;
             }
         }catch(IOException e){
