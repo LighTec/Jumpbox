@@ -84,7 +84,9 @@ public class TCPServer_Lobby extends TCPServer_Base {
                 inBuffer.putInt(lengthGameTypes);
                 inBuffer.put(encoder.encode(cBuffer));
                 cBuffer.flip();
+                this.inBuffer.flip();
                 z = cchannel.write(inBuffer); // write the game types, delimited by '\n'
+                this.inBuffer.flip();
                 break;
             case 11:
             case 12:
@@ -105,14 +107,16 @@ public class TCPServer_Lobby extends TCPServer_Base {
                     } else {
                         inBuffer.putInt(4);
                         inBuffer.putInt(4);
-                        inBuffer.flip();
+                        this.inBuffer.flip();
                         z = cchannel.write(inBuffer); // write invalid command error, did not return a game name
+                        this.inBuffer.flip();
                     }
                 } else {
                     inBuffer.putInt(4);
                     inBuffer.putInt(3);
-                    inBuffer.flip();
+                    this.inBuffer.flip();
                     z = cchannel.write(inBuffer); // write invalid command error, only "leader" can select game
+                    this.inBuffer.flip();
                 }
                 break;
             case 14:
@@ -121,8 +125,9 @@ public class TCPServer_Lobby extends TCPServer_Base {
             default:
                 inBuffer.putInt(4);
                 inBuffer.putInt(99);
-                inBuffer.flip();
+                this.inBuffer.flip();
                 z = cchannel.write(inBuffer); // write unknown error
+                this.inBuffer.flip();
                 break;
         }
         }catch(IOException e){
