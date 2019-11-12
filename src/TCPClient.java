@@ -147,6 +147,7 @@ public class TCPClient {
                     sentObj[0] = player;
                     request = new Request(12, sentObj);
                     lobbyController.sendCommand(request);
+                    handleServerCommand();
                     break;
                 case 14: // send game port
                     Object gamePort = messageReceivedShort;
@@ -194,15 +195,15 @@ public class TCPClient {
                     gameController.sendCommand(request);
                     break;
                 case 31: // send list of players with their score
-
+                    System.out.println(msgReceived);
                     List<Player> players = new ArrayList<>();
                     //Player player;
                     String[] allPlayers = msgReceived.split("\\r?\\n");
                     for (String eachPlayer : allPlayers) {
                         String[] playerInfo = eachPlayer.split(",");
                         player = new Player();
-                        player.setScore(Integer.parseInt(playerInfo[0]));
-                        player.setUsername(playerInfo[1]);
+                        player.setScore(Integer.parseInt(playerInfo[1]));
+                        player.setUsername(playerInfo[0]);
                         players.add(player);
                     }
 
@@ -210,14 +211,14 @@ public class TCPClient {
                     sentObj = players.toArray(sentObj);
 
                     request = new Request(31, sentObj);
-                    gameController.sendCommand(request);
+                    lobbyController.sendCommand(request);
 
                     //Player player;
                     break;
                 case 32: //get player name
                     break;
                 case 34: //update user
-                    //TO DO
+                    lobbyController.sendCommand(new Request(34, new Object[]{msgReceived}));
                     break;
                 case 41: // send all chat
 
