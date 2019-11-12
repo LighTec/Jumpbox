@@ -48,7 +48,6 @@ public class TCPServer_Lobby extends TCPServer_Base {
                     System.out.println("===========================================================");
                 }
                 z = cchannel.write(inBuffer);
-
                 // send player list to the newly connected player
                 inBuffer.clear(); // new command
                 Set<Integer> keyset1 = this.playerNetHash.keySet();

@@ -7,6 +7,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.*;
+import java.rmi.ServerError;
 import java.util.*;
 
 /**
@@ -45,7 +46,6 @@ public abstract class TCPServer_Base {
         if(init){
             this.initServer();
         }
-        this.runServer();
     }
 
     /**
@@ -323,27 +323,34 @@ public abstract class TCPServer_Base {
     boolean sendUpdates(Set keyset, SelectionKey sender, int cmd, byte[] msg, boolean sendToSender){
         if(cmdLen[cmd] == -2){
             return false;
-        }else if(cmdLen[cmd] != msg.length || cmdLen[cmd] == -1){ // if the command length does not match a fixed length command, return false
+        }else if(cmdLen[cmd] != msg.length && cmdLen[cmd] != -1){ // if the command length does not match a fixed length command, return false
             System.err.println("SendUpdate function used incorrectly. Argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + msg + "\n\tMessage Length:" + msg.length + "\n\tCommand Length: " + cmdLen[cmd] + "\n\t############");
             return false;
-        }else{
-            for(Object kObj : keyset){
-                SelectionKey k = (SelectionKey) kObj; // cast the key to the correct object
-                if(k != sender || sendToSender){ // if we send to the sender, then send to all. Otherwise, send to all but the sender.
-                    SocketChannel cchannel = (SocketChannel)k.channel(); // create channel
-                    this.inBuffer = ByteBuffer.allocateDirect(BUFFERSIZE);
-                    inBuffer.putInt(cmd);
-                    if(cmdLen[cmd] == -1){
-                        inBuffer.putInt(msg.length);
-                    }else{
-                        inBuffer.putInt(cmdLen[cmd]);
+        }else {
+            for (Object kObj : keyset) {
+                try {
+                    SelectionKey k = (SelectionKey) kObj; // cast the key to the correct object
+                    if (k != sender || sendToSender) { // if we send to the sender, then send to all. Otherwise, send to all but the sender.
+                        SocketChannel cchannelu = ((ServerSocketChannel) k.channel()).accept(); // create channel
+
+                        this.inBuffer = ByteBuffer.allocateDirect(BUFFERSIZE);
+                        inBuffer.putInt(cmd);
+                        if (cmdLen[cmd] == -1) {
+                            inBuffer.putInt(msg.length);
+                        } else {
+                            inBuffer.putInt(cmdLen[cmd]);
+                        }
+                        inBuffer.put(msg);
+                        try {
+                            int z = cchannelu.write(inBuffer);
+                        } catch (IOException e) {
+                            System.err.println("Failure attempting to send update message to player: " + this.playerNetHash.get((Integer) k.attachment()).getUsername() + "with message: " + msg);
+                            e.printStackTrace();
+                        }
                     }
-                    inBuffer.put(msg);
-                    try{
-                        int z = cchannel.write(inBuffer);
-                    }catch (IOException e){
-                        System.err.println("Failure attempting to send update message to player: " + this.playerNetHash.get((Integer)k.attachment()).getUsername() + "with message: " + msg);
-                        e.printStackTrace();
+                }catch(IOException e){
+                    if(DEBUG){
+                        System.err.println("Failed SendUpdate message to player");
                     }
                 }
             }
