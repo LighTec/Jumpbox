@@ -59,7 +59,7 @@ public class TCPServer_Lobby extends TCPServer_Base {
                 z = cchannel.write(inBuffer);
 
                 String updateMsg = cplayer.getUsername() + ',' + cplayer.getScore() + '\n';
-                this.sendUpdates(selector.keys(), key, 34, this.stringToByteArr(updateMsg), false);
+                this.sendUpdates(key, 34, this.stringToByteArr(updateMsg), false);
 
                 break;
             case 10:
@@ -133,7 +133,7 @@ public class TCPServer_Lobby extends TCPServer_Base {
             }
             switch(this.selectedGame){
                 case "skribble":
-                    TCPServer_Skribble skribServ = new TCPServer_Skribble(totalPlayerList, this.selector, this.playerNetHash, this.disconnectedPlayers, this.maxIntKey);
+                    TCPServer_Skribble skribServ = new TCPServer_Skribble(totalPlayerList, this.readSelector, this.playerNetHash, this.disconnectedPlayers, this.maxIntKey);
                     skribServ.runServer();
                     break;
                 default:

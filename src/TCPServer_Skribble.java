@@ -68,7 +68,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
      */
     public TCPServer_Skribble(ArrayList<Player> players, Selector selec, HashMap<Integer,Player> playerList, ArrayList<Player> dcPlayers, int mik){
         super(false);
-        this.selector = selec;
+        this.readSelector = selec;
         this.disconnectedPlayers = players;
         this.playerNetHash = playerList;
         this.disconnectedPlayers = dcPlayers;
@@ -134,7 +134,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                         this.cplayer.setScore(this.cplayer.getScore() + this.scoreHeuristic());
                     }else{
                         String chatMsg = "[" + this.cplayer.getUsername() + "]: " + msg;
-                        this.sendUpdates(selector.keys(), key, 43, this.stringToByteArr(chatMsg), false);
+                        this.sendUpdates(key, 43, this.stringToByteArr(chatMsg), false);
                         this.chatHistory.add(chatMsg);
                     }
                     break;
@@ -144,7 +144,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     break;
                 case 51:
                     if(cplayer.getUsername().equals(this.chosenDraw)) {
-                        this.sendUpdates(selector.keys(), key, 53, pktBytes, true);
+                        this.sendUpdates(key, 53, pktBytes, true);
                     }else{
                         inBuffer.putInt(4);
                         inBuffer.putInt(2);

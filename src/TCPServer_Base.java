@@ -7,7 +7,6 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.*;
-import java.rmi.ServerError;
 import java.util.*;
 
 /**
@@ -38,7 +37,8 @@ public abstract class TCPServer_Base {
     int intkey;
     SocketChannel cchannel;
     SelectionKey key;
-    Selector selector = null;
+    Selector readSelector = null;
+    Selector writeSelector = null;
 
     public TCPServer_Base(boolean init){
         this.initCmdLen();
@@ -84,7 +84,8 @@ public abstract class TCPServer_Base {
         // privileged users (root)
 
         try {
-            this.selector = Selector.open();
+            this.readSelector = Selector.open();
+            this.writeSelector = Selector.open();
 
             // Create a server channel and make it non-blocking
             ServerSocketChannel channel = ServerSocketChannel.open();
@@ -95,7 +96,8 @@ public abstract class TCPServer_Base {
             channel.socket().bind(isa);
 
             // Register that the server selector is interested in connection requests
-            channel.register(selector, SelectionKey.OP_ACCEPT);
+            channel.register(readSelector, SelectionKey.OP_ACCEPT);
+            channel.register(writeSelector, SelectionKey.OP_WRITE);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -112,14 +114,14 @@ public abstract class TCPServer_Base {
             {
                 // ########## NETWORK MANAGEMENT CODE BEGIN
 
-                if (selector.select(500) < 0)
+                if (readSelector.select(500) < 0)
                 {
                     System.out.println("select() failed");
                     System.exit(1);
                 }
 
                 // Get set of ready sockets
-                Set readyKeys = selector.selectedKeys();
+                Set readyKeys = readSelector.selectedKeys();
                 Iterator readyItor = readyKeys.iterator();
 
                 // Walk through the ready set
@@ -144,7 +146,8 @@ public abstract class TCPServer_Base {
 
                         //key.attach(this.maxIntKey); // attach an key to the key because a key is not a key if it does not contain a key within the key.
                         // Register the new connection for read operation
-                        cchannel.register(selector, SelectionKey.OP_READ, this.maxIntKey);
+                        cchannel.register(this.readSelector, SelectionKey.OP_READ, this.maxIntKey);
+                        cchannel.register(this.writeSelector, SelectionKey.OP_WRITE, this.maxIntKey);
 
                         this.maxIntKey++;
                     }else{
@@ -197,7 +200,6 @@ public abstract class TCPServer_Base {
                                 if(DEBUG){
                                     System.out.println(byteArrToString(pktBytes));
                                 }
-                                inBuffer.flip(); // flip before we write to it? // TODO find out if we need to flip
                                 if(this.canHandleCommand[cmdNum]){
                                     int z = 0;
                                     switch(cmdNum){
@@ -211,7 +213,7 @@ public abstract class TCPServer_Base {
                                             this.disconnectedPlayers.add(this.playerNetHash.get(intkey)); // store player in list of possible reconnects
                                             this.playerNetHash.remove(intkey); // remove player from list
                                             // send updated list w/o this player to all others
-                                            this.sendUpdates(selector.keys(),key,31,this.stringToByteArr(this.playersToSendList(this.playerNetHash.keySet())),false);
+                                            this.sendUpdates(key,31,this.stringToByteArr(this.playersToSendList(this.playerNetHash.keySet())),false);
                                             break;
                                         case 3:
                                             String reconName = this.byteArrToString(pktBytes);
@@ -279,7 +281,7 @@ public abstract class TCPServer_Base {
         }
 
         // close all connections
-        Set keys = selector.keys();
+        Set keys = readSelector.keys();
         Iterator itr = keys.iterator();
         while (itr.hasNext())
         {
@@ -313,25 +315,23 @@ public abstract class TCPServer_Base {
 
     /**
      * Sends copied commands to multiple users. Used for updating the player list, canvas, etc.
-     * @param keyset set of socketchannel selectionkeys to send to (by default, the entire set).
      * @param sender The selectionkey of the sender
      * @param cmd The command number to send.
      * @param msg The message to send, as a byte array
      * @param sendToSender whether to send this message to the sender as well
      * @return true if a valid command, false if a not valid command is received or cmd length does not match string length.
      */
-    boolean sendUpdates(Set keyset, SelectionKey sender, int cmd, byte[] msg, boolean sendToSender){
+    boolean sendUpdates(SelectionKey sender, int cmd, byte[] msg, boolean sendToSender){
         if(cmdLen[cmd] == -2){
             return false;
         }else if(cmdLen[cmd] != msg.length && cmdLen[cmd] != -1){ // if the command length does not match a fixed length command, return false
             System.err.println("SendUpdate function used incorrectly. Argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + msg + "\n\tMessage Length:" + msg.length + "\n\tCommand Length: " + cmdLen[cmd] + "\n\t############");
             return false;
         }else {
-            for (Object kObj : keyset) {
-                try {
+            for (Object kObj : this.writeSelector.keys()) {
                     SelectionKey k = (SelectionKey) kObj; // cast the key to the correct object
                     if (k != sender || sendToSender) { // if we send to the sender, then send to all. Otherwise, send to all but the sender.
-                        SocketChannel cchannelu = ((ServerSocketChannel) k.channel()).accept(); // create channel
+                        SocketChannel cchannelu = (SocketChannel)k.channel(); // create channel
 
                         this.inBuffer = ByteBuffer.allocateDirect(BUFFERSIZE);
                         inBuffer.putInt(cmd);
@@ -348,11 +348,6 @@ public abstract class TCPServer_Base {
                             e.printStackTrace();
                         }
                     }
-                }catch(IOException e){
-                    if(DEBUG){
-                        System.err.println("Failed SendUpdate message to player");
-                    }
-                }
             }
             return true;
         }
