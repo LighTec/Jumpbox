@@ -67,7 +67,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
      * @param mik
      */
     public TCPServer_Skribble(ArrayList<Player> players, Selector selec, HashMap<Integer,Player> playerList, ArrayList<Player> dcPlayers, int mik){
-        super();
+        super(false);
         this.selector = selec;
         this.disconnectedPlayers = players;
         this.playerNetHash = playerList;

@@ -1,5 +1,3 @@
-package main;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -41,9 +39,13 @@ public abstract class TCPServer_Base {
     SelectionKey key;
     Selector selector = null;
 
-    public TCPServer_Base(){
+    public TCPServer_Base(boolean init){
         this.initCmdLen();
         this.initCanHandle();
+        if(init){
+            this.initServer();
+        }
+        this.runServer();
     }
 
     /**
@@ -74,9 +76,9 @@ public abstract class TCPServer_Base {
     abstract void customRun();
 
     /**
-     * Runs a lobby instance. A more in-depth explanation to come later. on implementation details.
+     * Initializes the server instance.
      */
-    public void runServer() {
+    private void initServer(){
         // Try to open a server socket on the given port
         // Note that we can't choose a port less than 1023 if we are not
         // privileged users (root)
@@ -99,6 +101,12 @@ public abstract class TCPServer_Base {
             e.printStackTrace();
         }
         // Wait for something happen among all registered sockets
+    }
+
+    /**
+     * Runs a lobby instance. A more in-depth explanation to come later. on implementation details.
+     */
+    public void runServer() {
         try {
             while (!terminated)
             {

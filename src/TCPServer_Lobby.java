@@ -19,7 +19,7 @@ public class TCPServer_Lobby extends TCPServer_Base {
     private String leaderName = ""; // the lobby leader, who picks the game to play
 
     public TCPServer_Lobby(){
-        super();
+        super(true);
     }
 
     @Override
@@ -144,11 +144,6 @@ public class TCPServer_Lobby extends TCPServer_Base {
             }
             this.resetLobby(); // reset all lobby vars
         }
-    }
-
-    public TCPServer_Lobby(ArrayList<Player> players){
-        super();
-        this.disconnectedPlayers = players;
     }
 
     /**
