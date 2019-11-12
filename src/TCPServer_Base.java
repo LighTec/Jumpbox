@@ -185,6 +185,7 @@ public abstract class TCPServer_Base {
                                     inBuffer.putInt(4);
                                     inBuffer.putInt(4);
                                     inBuffer.flip();
+                                    int z = cchannel.write(inBuffer);
                                     len = 0;
                                     // send an error to the client
                                 } else if (len == -1) {
@@ -245,8 +246,9 @@ public abstract class TCPServer_Base {
                                             inBuffer.putInt(5);
                                             inBuffer.putInt(len);
                                             inBuffer.put(pktBytes);
-                                            inBuffer.flip();
+                                            this.inBuffer.flip();
                                             z = cchannel.write(inBuffer); // echo back
+                                            inBuffer.flip();
                                             break;
                                         case 30:
                                             Set<Integer> keyset30 = this.playerNetHash.keySet();
@@ -255,7 +257,9 @@ public abstract class TCPServer_Base {
                                             inBuffer.putInt(toSend30.length());
                                             // creates a string in the form of username,score\n for all players, then turns it into a byte array
                                             inBuffer.put(this.stringToByteArr(toSend30));
+                                            this.inBuffer.flip();
                                             z = cchannel.write(inBuffer);
+                                            this.inBuffer.flip();
                                             break;
                                         case 33:
                                             cplayer.setUsername(byteArrToString(pktBytes));
@@ -264,8 +268,9 @@ public abstract class TCPServer_Base {
                                         default:
                                             inBuffer.putInt(4);
                                             inBuffer.putInt(99);
-                                            inBuffer.flip();
+                                            this.inBuffer.flip();
                                             z = cchannel.write(inBuffer); // write unknown error
+                                            this.inBuffer.flip();
                                             break;
                                     }
                                 }else{
@@ -276,8 +281,9 @@ public abstract class TCPServer_Base {
                                 // inBuffer.flip(); // done reading, flip back to write for output
                                 inBuffer.putInt(4);
                                 inBuffer.putInt(99);
-                                inBuffer.flip();
+                                this.inBuffer.flip();
                                 int z = cchannel.write(inBuffer); // unknown error
+                                this.inBuffer.flip();
                                 System.err.println("CMD receive error, flushing byte buffer.");
                             }
                         }
@@ -319,7 +325,7 @@ public abstract class TCPServer_Base {
         }catch(IOException e){
             System.err.println("failed sending invalid command error to player: " + this.cplayer.getUsername());
         }
-
+        this.inBuffer.flip();
     }
 
     /**
@@ -348,7 +354,6 @@ public abstract class TCPServer_Base {
                         if (DEBUG){
                             System.out.println("Sending to: " + this.playerNetHash.get((Integer)k.attachment()).getUsername());
                         }
-                        this.inBuffer = ByteBuffer.allocateDirect(BUFFERSIZE);
                         inBuffer.putInt(cmd);
                         if (cmdLen[cmd] == -1) {
                             inBuffer.putInt(msg.length);
@@ -357,7 +362,9 @@ public abstract class TCPServer_Base {
                         }
                         inBuffer.put(msg);
                         try {
+                            this.inBuffer.flip();
                             int z = cchannelu.write(inBuffer);
+                            this.inBuffer.flip();
                         } catch (IOException e) {
                             System.err.println("Failure attempting to send update message to player: " + this.playerNetHash.get((Integer) k.attachment()).getUsername() + "with message: " + msg);
                             e.printStackTrace();
