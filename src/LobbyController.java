@@ -36,6 +36,15 @@ public class LobbyController implements Initializable {
         this.tcpClient = Main.tcpClient;
 
         tcpClient.sendFromUser(new Request(1, new Object[]{currentPlayerName, serverIp}));
+
+        // wait for server response
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                tcpClient.handleServerCommand();
+            }
+        };
+        t.start();
     }
 
     public void sendCommand(Request request) {

@@ -154,7 +154,7 @@ public class TCPClient {
                     sentObj = new Object[1];
                     sentObj[0] = gamePort;
                     request = new Request(14, sentObj);
-                    lobbyController.sendCommand(request);
+                    gameController.sendCommand(request);
                     break;
                 case 20: //send time left
                     Object timeLeft = (Integer) messageReceivedInt;
@@ -301,7 +301,6 @@ public class TCPClient {
 
                     //waiting for response from server with command send game leader 12
                     System.out.println("running handleServerCommand...");
-                    handleServerCommand();
                     break;
 
                 case 2: //close connection

@@ -77,8 +77,14 @@ public class GameController implements Initializable {
 
         canvas = new DrawingCanvas(this, canvasParent);
 
-        // Reconnection
-        tcpClient.sendFromUser(new Request(3, new Object[]{currentPlayerName}));
+        // wait for server response
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                tcpClient.handleServerCommand();
+            }
+        };
+        t.start();
     }
 
     public void sendCommand(Request request) {
