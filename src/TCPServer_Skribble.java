@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.nio.channels.Selector;
 import java.util.*;
 
-public class TCPServer_Skribble extends TCPServer_Base{
+public class TCPServer_Skribble extends TCPServer_Base {
 
     private static int DRAWCHOICEAMT = 3;
     private static String[] DRAWCHOICES = {"Apple", "Banana", "Coconut", "Durian", "Grapes", "Kiwi", "Lime", "Mango",
@@ -62,7 +62,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
      * @param dcPlayers
      * @param mik
      */
-    public TCPServer_Skribble(ArrayList<Player> players, Selector selec, HashMap<Integer,Player> playerList, ArrayList<Player> dcPlayers, int mik){
+    public TCPServer_Skribble(ArrayList<Player> players, Selector selec, HashMap<Integer, Player> playerList, ArrayList<Player> dcPlayers, int mik){
         super(false);
         this.selector = selec;
         this.disconnectedPlayers = players;
@@ -195,7 +195,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
         String[] randomStrings = new String[DRAWCHOICEAMT];
         int i = 0;
         while(i < DRAWCHOICEAMT){
-            int rann = (int)Math.round((this.ranGen.nextDouble() * DRAWCHOICES.length));
+            int rann = (int) Math.round((this.ranGen.nextDouble() * DRAWCHOICES.length));
             boolean unique = true;
             for(int j = 0; j < randomNums.length; j++){
                 if(rann == randomNums[j]){

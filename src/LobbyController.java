@@ -1,3 +1,4 @@
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
@@ -55,9 +56,19 @@ public class LobbyController implements Initializable {
                 if (this.currentPlayerName.equals(leader.getUsername().trim())) {
                     Button startGameButton = new Button("Start Game");
                     startGameButton.setOnAction(this::onStartGame);
-                    rightPane.getChildren().add(startGameButton);
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            rightPane.getChildren().add(startGameButton);
+                        }
+                    });
                 } else {
-                    rightPane.getChildren().add(new Text("Waiting for your game leader to start the game..."));
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            rightPane.getChildren().add(new Text("Waiting for your game leader to start the game..."));
+                        }
+                    });
                 }
                 break;
             case 34: // A new player joined the game

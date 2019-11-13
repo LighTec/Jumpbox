@@ -57,6 +57,7 @@ public class TCPServer_Lobby extends TCPServer_Base {
                 }
                 inBuffer.clear(); // new command
                 Set<Integer> keyset1 = this.playerNetHash.keySet();
+                System.out.println("keyset1: " + keyset1);
                 String toSend1 = this.playersToSendList(keyset1);
                 inBuffer.putInt(31);
                 inBuffer.putInt(toSend1.length());
@@ -64,6 +65,7 @@ public class TCPServer_Lobby extends TCPServer_Base {
                 inBuffer.put(this.stringToByteArr(toSend1));
                 this.inBuffer.flip();
                 z = cchannel.write(inBuffer);
+
                 this.inBuffer.flip();
                 String updateMsg = cplayer.getUsername() + ',' + cplayer.getScore() + '\n';
                 this.sendUpdates(key, 34, this.stringToByteArr(updateMsg), false);
