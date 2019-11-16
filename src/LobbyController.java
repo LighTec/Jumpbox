@@ -20,6 +20,7 @@ public class LobbyController implements Initializable {
     private String currentPlayerName;
     private String serverIp;
     private TCPClient tcpClient;
+    private Thread t;
 
     @FXML
     private ListView<String> playerListView;
@@ -39,7 +40,7 @@ public class LobbyController implements Initializable {
         tcpClient.sendFromUser(new Request(1, new Object[]{currentPlayerName, serverIp}));
 
         // wait for server response
-        Thread t = new Thread() {
+        t = new Thread() {
             @Override
             public void run() {
                 tcpClient.handleServerCommand();
@@ -84,6 +85,7 @@ public class LobbyController implements Initializable {
     }
 
     private void onStartGame(Event e) {
+        t.interrupt();
         Main.router.startGame();
     }
 }

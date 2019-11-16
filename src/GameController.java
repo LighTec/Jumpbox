@@ -44,6 +44,7 @@ public class GameController implements Initializable {
     private DrawingCanvas canvas;
     private ArrayList<Player> players;
     private TCPClient tcpClient = Main.tcpClient;
+    private Thread t;
 
     // resets every round
     private int timeRemaining;
@@ -78,7 +79,7 @@ public class GameController implements Initializable {
         canvas = new DrawingCanvas(this, canvasParent);
 
         // wait for server response
-        Thread t = new Thread() {
+        t = new Thread() {
             @Override
             public void run() {
                 tcpClient.handleServerCommand();
@@ -88,6 +89,7 @@ public class GameController implements Initializable {
     }
 
     public void sendCommand(Request request) {
+        t.interrupt();
         int command = request.command;
         switch (command) {
 
@@ -107,6 +109,7 @@ public class GameController implements Initializable {
                 timeRemaining = (int) request.arg[0];
                 String defaultText = "Draw here";
                 gameTitle.setText(defaultText + "\t Time Remaining: " + timeRemaining);
+                t.start();
                 break;
             case 21: // send draw options
                 String[] options = {(String) request.arg[0], (String) request.arg[1], (String) request.arg[2]};
