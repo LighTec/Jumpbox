@@ -1,5 +1,7 @@
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.BufferOverflowException;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.channels.SelectionKey;
@@ -155,7 +157,13 @@ public abstract class TCPServer_Base {
                         if (key.isReadable()){
 
                             // Open input and output streams
-                            inBuffer = ByteBuffer.allocateDirect(BUFFERSIZE);
+                            this.inBuffer = ByteBuffer.allocateDirect(BUFFERSIZE);
+
+                            try{
+                                Thread.sleep(50); // sleep thread while waiting for message to finish arriving
+                            }catch(Exception e){
+                            }
+
                             // Read from socket
                             int bytesRecv = cchannel.read(inBuffer);
                             if (bytesRecv <= 0)
@@ -167,119 +175,136 @@ public abstract class TCPServer_Base {
                                 continue;
                             }
                             inBuffer.flip();      // make buffer available for reading
-                            int cmdNum = inBuffer.getInt(); // command number
-                            if(DEBUG) {
-                                System.out.println("CMD received: " + cmdNum);
-                            }
-                            if(cmdNum < this.cmdLen.length) {
-                                int len = this.cmdLen[cmdNum]; // command length
-                                byte[] pktBytes;
-                                if (len == -2) {
-                                    inBuffer.flip();
-                                    inBuffer.putInt(4);
-                                    inBuffer.putInt(4);
-                                    inBuffer.flip();
-                                    int z = cchannel.write(inBuffer);
-                                    len = 0;
-                                    // send an error to the client
-                                } else if (len == -1) {
-                                    len = inBuffer.getInt();
-                                    if(DEBUG){
-                                        System.out.println("Variable length: " + len);
+                            try{
+                                int cmdNum = inBuffer.getInt(); // command number
+                                if(DEBUG) {
+                                    System.out.println("CMD received: " + cmdNum);
+                                }
+                                if(cmdNum < this.cmdLen.length) {
+                                    int len = this.cmdLen[cmdNum]; // command length
+                                    byte[] pktBytes;
+                                    if (len == -2) {
+                                        inBuffer.flip();
+                                        inBuffer.putInt(4);
+                                        inBuffer.putInt(4);
+                                        inBuffer.flip();
+                                        int z = cchannel.write(inBuffer);
+                                        len = 0;
+                                        // send an error to the client
+                                    } else if (len == -1) {
+                                        len = inBuffer.getInt();
+                                        if(DEBUG){
+                                            System.out.println("Variable length: " + len);
+                                            System.out.println("Buffer length: " + inBuffer.remaining());
+                                        }
                                     }
-                                }
-                                pktBytes = new byte[len]; // the command data
-                                for (int i = 0; i < len; i++) {
-                                    pktBytes[i] = inBuffer.get();
-                                }
-                                while(this.inBuffer.hasRemaining()){
-                                    this.inBuffer.get();
-                                }
+                                    pktBytes = new byte[len]; // the command data
+                                    for (int i = 0; i < len; i++) {
+                                        pktBytes[i] = inBuffer.get();
+                                    }
+                                    while(this.inBuffer.hasRemaining()){
+                                        this.inBuffer.get();
+                                    }
 
-                                if(DEBUG){
-                                    System.out.println("Data received: #" + byteArrToString(pktBytes) + "#");
-                                }
-                                inBuffer.flip();
+                                    if(DEBUG){
+                                        System.out.println("Data received: #" + byteArrToString(pktBytes) + "#");
+                                    }
+                                    inBuffer.flip();
 
-                                if(this.canHandleCommand[cmdNum]){
-                                    int z = 0;
-                                    switch(cmdNum){
-                                        case 6: // all commands that the clients should not send
-                                        case 31:
-                                        case 32:
-                                        case 34:
-                                            this.sendInvalidCommand();
-                                            break;
-                                        case 2:
-                                            this.disconnectedPlayers.add(this.playerNetHash.get(intkey)); // store player in list of possible reconnects
-                                            this.playerNetHash.remove(intkey); // remove player from list
-                                            // send updated list w/o this player to all others
-                                            this.sendUpdates(key,31,this.stringToByteArr(this.playersToSendList(this.playerNetHash.keySet())),false);
-                                            break;
-                                        case 3:
-                                            String reconName = this.byteArrToString(pktBytes);
-                                            Iterator<Player> reconPlayers = this.disconnectedPlayers.iterator();
-                                            while(reconPlayers.hasNext()){
-                                                Player recon = reconPlayers.next();
-                                                if(recon.getUsername().equals(reconName)){
-                                                    // Tie the disconnected player to the new connection
-                                                    this.playerNetHash.replace(intkey,recon);
+                                    if(this.canHandleCommand[cmdNum]){
+                                        int z = 0;
+                                        switch(cmdNum){
+                                            case 6: // all commands that the clients should not send
+                                            case 31:
+                                            case 32:
+                                            case 34:
+                                                this.sendInvalidCommand();
+                                                break;
+                                            case 2:
+                                                this.disconnectedPlayers.add(this.playerNetHash.get(intkey)); // store player in list of possible reconnects
+                                                this.playerNetHash.remove(intkey); // remove player from list
+                                                // send updated list w/o this player to all others
+                                                this.sendUpdates(key,31,this.stringToByteArr(this.playersToSendList(this.playerNetHash.keySet())),false);
+                                                break;
+                                            case 3:
+                                                String reconName = this.byteArrToString(pktBytes);
+                                                Iterator<Player> reconPlayers = this.disconnectedPlayers.iterator();
+                                                while(reconPlayers.hasNext()){
+                                                    Player recon = reconPlayers.next();
+                                                    if(recon.getUsername().equals(reconName)){
+                                                        // Tie the disconnected player to the new connection
+                                                        this.playerNetHash.replace(intkey,recon);
+                                                    }
                                                 }
-                                            }
-                                            break;
-                                        case 4:
-                                            System.out.println("Error received: " + byteArrToString(pktBytes)); // print error
-                                            break;
-                                        case 5:
-                                            if(DEBUG){
-                                                System.out.println("Echoing back: " + byteArrToString(pktBytes));
-                                            }
-                                            inBuffer.putInt(5);
-                                            inBuffer.putInt(len);
-                                            inBuffer.put(pktBytes);
-                                            this.inBuffer.flip();
-                                            z = cchannel.write(inBuffer); // echo back
-                                            inBuffer.flip();
-                                            break;
-                                        case 30:
-                                            Set<Integer> keyset30 = this.playerNetHash.keySet();
-                                            inBuffer.putInt(31);
-                                            String toSend30 = this.playersToSendList(keyset30);
-                                            inBuffer.putInt(toSend30.length());
-                                            // creates a string in the form of username,score\n for all players, then turns it into a byte array
-                                            inBuffer.put(this.stringToByteArr(toSend30));
-                                            this.inBuffer.flip();
-                                            z = cchannel.write(inBuffer);
-                                            this.inBuffer.flip();
-                                            break;
-                                        case 33:
-                                            cplayer.setUsername(byteArrToString(pktBytes));
-                                            this.playerNetHash.replace(intkey,cplayer);
-                                            break;
-                                        default:
-                                            inBuffer.putInt(4);
-                                            inBuffer.putInt(99);
-                                            this.inBuffer.flip();
-                                            z = cchannel.write(inBuffer); // write unknown error
-                                            this.inBuffer.flip();
-                                            break;
+                                                break;
+                                            case 4:
+                                                System.out.println("Error received: " + byteArrToString(pktBytes)); // print error
+                                                break;
+                                            case 5:
+                                                if(DEBUG){
+                                                    System.out.println("Echoing back: " + byteArrToString(pktBytes));
+                                                }
+                                                inBuffer.putInt(5);
+                                                inBuffer.putInt(len);
+                                                inBuffer.put(pktBytes);
+                                                this.inBuffer.flip();
+                                                z = cchannel.write(inBuffer); // echo back
+                                                inBuffer.flip();
+                                                break;
+                                            case 30:
+                                                Set<Integer> keyset30 = this.playerNetHash.keySet();
+                                                inBuffer.putInt(31);
+                                                String toSend30 = this.playersToSendList(keyset30);
+                                                inBuffer.putInt(toSend30.length());
+                                                // creates a string in the form of username,score\n for all players, then turns it into a byte array
+                                                inBuffer.put(this.stringToByteArr(toSend30));
+                                                this.inBuffer.flip();
+                                                z = cchannel.write(inBuffer);
+                                                this.inBuffer.flip();
+                                                break;
+                                            case 33:
+                                                cplayer.setUsername(byteArrToString(pktBytes));
+                                                this.playerNetHash.replace(intkey,cplayer);
+                                                break;
+                                            default:
+                                                inBuffer.putInt(4);
+                                                inBuffer.putInt(99);
+                                                this.inBuffer.flip();
+                                                z = cchannel.write(inBuffer); // write unknown error
+                                                this.inBuffer.flip();
+                                                break;
+                                        }
+                                    }else{
+                                        this.handleSpecializedCommand(cmdNum, pktBytes);
                                     }
                                 }else{
-                                    this.handleSpecializedCommand(cmdNum, pktBytes);
+                                    inBuffer.clear();
+                                    // inBuffer.flip(); // done reading, flip back to write for output
+                                    inBuffer.putInt(4);
+                                    inBuffer.putInt(99);
+                                    this.inBuffer.flip();
+                                    int z = cchannel.write(inBuffer); // unknown error
+                                    this.inBuffer.flip();
+                                    System.err.println("CMD receive error, flushing byte buffer. Buffer data below (if any):");
+                                    System.err.println("Buffer remaining bytes: " + this.inBuffer.remaining());
+                                    byte[] bufRem = new byte[this.inBuffer.remaining()];
+                                    for(int i = 0; i < bufRem.length; i++){
+                                        bufRem[i] = this.inBuffer.get();
+                                    }
+                                    System.err.println("Buffer data begin:\n" + this.byteArrToString(bufRem) + "\nBuffer data end.");
                                 }
-                            }else{
-                                inBuffer.clear();
-                                // inBuffer.flip(); // done reading, flip back to write for output
-                                inBuffer.putInt(4);
-                                inBuffer.putInt(99);
-                                this.inBuffer.flip();
-                                int z = cchannel.write(inBuffer); // unknown error
-                                this.inBuffer.flip();
-                                System.err.println("CMD receive error, flushing byte buffer.");
+                            }catch(BufferUnderflowException e){
+                                System.err.println("Buffer underflow error while reading from user " + this.playerNetHash.get((Integer)key.attachment()).getUsername());
+                                e.printStackTrace();
+                            }catch(BufferOverflowException e){
+                                System.err.println("Buffer overflow error while reading from user " + this.playerNetHash.get((Integer)key.attachment()).getUsername());
+                                e.printStackTrace();
                             }
                         }
                     }
                 } // end of while (readyItor.hasNext())
+
+                this.customRun();
             } // end of while (!terminated)
         }
         catch (IOException e) {
@@ -328,8 +353,10 @@ public abstract class TCPServer_Base {
      * @return true if a valid command, false if a not valid command is received or cmd length does not match string length.
      */
     boolean sendUpdates(SelectionKey sender, int cmd, byte[] msg, boolean sendToSender){
-        if(DEBUG){
+        if(DEBUG && msg != null){
             System.out.println("SendUpdate argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + this.byteArrToString(msg) + "\n\tMessage Length: " + msg.length + "\n\tCommand Length: " + cmdLen[cmd] + "\n\t");
+        }else if(DEBUG){
+            System.out.println("SendUpdate argument dump:\n\tCommand: " + cmd + "\n\tEmpty message" + "\n\tMessage Length: 0" + "\n\tCommand Length: " + cmdLen[cmd] + "\n\t");
         }
         if(cmdLen[cmd] == -2){
             return false;
@@ -338,6 +365,7 @@ public abstract class TCPServer_Base {
             return false;
         }else {
             for (Object kObj : this.selector.keys()) {
+                    this.inBuffer = ByteBuffer.allocateDirect(BUFFERSIZE);
                     SelectionKey k = (SelectionKey) kObj; // cast the key to the correct object
                     if ((k != sender || sendToSender) && !k.isAcceptable()) { // if we send to the sender, then send to all. Otherwise, send to all but the sender.
                         SocketChannel cchannelu = (SocketChannel)k.channel(); // create channel
@@ -378,9 +406,11 @@ public abstract class TCPServer_Base {
      * @param msg The message to send, as a byte array
      * @return true if a valid command, false if a not valid command is received or cmd length does not match string length.
      */
-    boolean sendToPlayerName(SelectionKey sendToKey, int cmd, byte[] msg){
-        if(DEBUG){
-            System.out.println("SendUpdate argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + this.byteArrToString(msg) + "\n\tMessage Length: " + msg.length + "\n\tCommand Length: " + cmdLen[cmd] + "\n\t");
+    boolean sendToPlayer(SelectionKey sendToKey, int cmd, byte[] msg){
+        if(DEBUG && msg != null){
+            System.out.println("SendToPlayer argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + this.byteArrToString(msg) + "\n\tMessage Length: " + msg.length + "\n\tCommand Length: " + cmdLen[cmd] + "\n\t");
+        }else if(DEBUG){
+            System.out.println("SendToPlayer argument dump:\n\tCommand: " + cmd + "\n\tEmpty message" + "\n\tMessage Length: 0" + "\n\tCommand Length: " + cmdLen[cmd] + "\n\t");
         }
         if(cmdLen[cmd] == -2){
             return false;
@@ -388,6 +418,7 @@ public abstract class TCPServer_Base {
             System.err.println("SendToPlayer function used incorrectly. Argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + this.byteArrToString(msg) + "\n\tMessage Length: " + msg.length + "\n\tCommand Length: " + cmdLen[cmd] + "\n\t############");
             return false;
         }else {
+            this.inBuffer = ByteBuffer.allocateDirect(BUFFERSIZE);
             SocketChannel cchannelu = (SocketChannel)sendToKey.channel(); // create channel
             if (DEBUG){
                 System.out.println("Sending to: " + this.playerNetHash.get((Integer)sendToKey.attachment()).getUsername());
@@ -424,22 +455,27 @@ public abstract class TCPServer_Base {
      * @param msg The message to send, as a byte array
      * @return true if a valid command, false if a not valid command is received or cmd length does not match string length.
      */
-    boolean sendToPlayerName(String sendTo, int cmd, byte[] msg){
-        if(DEBUG){
-            System.out.println("SendUpdate argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + this.byteArrToString(msg) + "\n\tMessage Length: " + msg.length + "\n\tCommand Length: " + cmdLen[cmd] + "\n\t");
+    boolean sendToPlayer(String sendTo, int cmd, byte[] msg){
+        if(DEBUG && msg != null){
+            System.out.println("SendToPlayer (string) argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + this.byteArrToString(msg) + "\n\tMessage Length: " + msg.length + "\n\tCommand Length: " + cmdLen[cmd] + "\n\t");
+        }else if(DEBUG){
+            System.out.println("SendToPlayer (string) argument dump:\n\tCommand: " + cmd + "\n\tEmpty message" + "\n\tMessage Length: 0" + "\n\tCommand Length: " + cmdLen[cmd] + "\n\t");
         }
         SelectionKey key = null;
         for (Object kObj : this.selector.keys()) {
-            SelectionKey k = (SelectionKey) kObj; // cast the key to the correct object
-            if(this.playerNetHash.get((Integer)k.attachment()).getUsername() != sendTo && !k.isAcceptable()) { // if we send to the sender, then send to all. Otherwise, send to all but the sender.
-                key = k;
+            try {
+                SelectionKey k = (SelectionKey) kObj; // cast the key to the correct object
+                if (this.playerNetHash.get((Integer) k.attachment()).getUsername() == sendTo && !k.isAcceptable()) { // if we send to the sender, then send to all. Otherwise, send to all but the sender.
+                    key = k;
+                }
+            }catch(NullPointerException e){
             }
         }
         if(key == null){
             System.err.println("SendToPlayer failed to establish which player to send to. Username given: " + sendTo);
             return false;
         }else{
-            return this.sendToPlayerName(key,cmd,msg);
+            return this.sendToPlayer(key,cmd,msg);
         }
     }
 
@@ -461,6 +497,9 @@ public abstract class TCPServer_Base {
      * @return
      */
     public String byteArrToString(byte[] inBytes){
+        if(inBytes == null){
+            return "&null";
+        }
 
         ByteBuffer inBuffera = ByteBuffer.allocateDirect(inBytes.length);
         CharBuffer cBuffera = CharBuffer.allocate(inBytes.length);
@@ -479,6 +518,9 @@ public abstract class TCPServer_Base {
      * @return
      */
     public byte[] stringToByteArr(String in){
+        if(in == null){
+            return new byte[0];
+        }
 
         ByteBuffer inBufferb = ByteBuffer.allocateDirect(in.length());
         CharBuffer cBufferb = CharBuffer.allocate(in.length());
@@ -526,7 +568,7 @@ public abstract class TCPServer_Base {
         this.cmdLen[20] = 4;
         this.cmdLen[21] = -1;
         this.cmdLen[22] = -1;
-        this.cmdLen[23] = 0;
+        this.cmdLen[23] = -1;
         this.cmdLen[24] = 0;
         this.cmdLen[25] = 0;
         this.cmdLen[26] = 0;

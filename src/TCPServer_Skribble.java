@@ -138,7 +138,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     String userName = msgArray[1];
                     String msgBody = msgArray[1];
                     if(msg.equals(this.chosenDraw) && this.matchStatus.equals(INMATCH)){
-                        this.sendToPlayerName(key,24,null);
+                        this.sendToPlayer(key,24,null);
                         scoreMap.put(userName, timeStamp);
                     }else{
                         String chatMsg = "[" + this.cplayer.getUsername() + "]: " + msgBody;
@@ -204,10 +204,12 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
             if(DEBUG){
                 System.out.println("Player disconnection or connection, iterating over linkedlist to remove player from list if disconnected.");
             }
-            Iterator<Integer> rotiter = this.playerRotations.listIterator();
-            while(rotiter.hasNext()){
+            System.out.println("PLAYERROT DEBUG");
+            System.out.println("size:" + this.playerRotations.size());
+            System.out.println("frontmost element" + this.playerRotations.peekFirst());
+            for(int i = 0; i < this.playerRotations.size(); i++){
                 boolean found = false;
-                Integer num = rotiter.next();
+                Integer num = this.playerRotations.get(i);
                 for(Integer key : this.playerNetHash.keySet()){
                     if(num == key){
                         found = true;
@@ -238,7 +240,8 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                 if(DEBUG){
                     System.out.println("Initializing round with draw leader ");
                 }
-
+                // send new round
+                this.sendUpdates(null,25,new byte[0],false);
                 // send to all the new drawer
                 this.sendUpdates(null, 23, this.stringToByteArr(this.drawLeader), false);
                 // get draw choices
@@ -246,9 +249,10 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                 String drawStr = "";
                 // format and send draw choices
                 for(String choice : this.currentDrawChoices){
-                    drawStr += choice + '\n';
+                    drawStr += choice + ',';
                 }
-                this.sendToPlayerName(this.drawLeader, 21, this.stringToByteArr(drawStr));
+                drawStr = drawStr.substring(0, drawStr.length() - 1); // remove the last comma
+                this.sendToPlayer(this.drawLeader, 21, this.stringToByteArr(drawStr));
 
                 this.matchStatus = DRAWPICK;
                 break;
