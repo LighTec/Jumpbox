@@ -5,6 +5,7 @@ import javafx.scene.control.*;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
@@ -58,10 +59,10 @@ public class GameController implements Initializable {
     private ObservableList<String> chatObservable = FXCollections.observableArrayList();
     private ObservableList<String> playersObservable = FXCollections.observableArrayList();
 
-    public GameController(){}
+    public GameController() {
+    }
 
-    private void sendMessage(Event e)
-    {
+    private void sendMessage(Event e) {
         TextField source = (TextField) e.getSource();
         String message = source.getText();
         System.out.println(message);
@@ -70,9 +71,9 @@ public class GameController implements Initializable {
         Message newMessage = new Message(message, currentPlayerName);
         tcpClient.sendFromUser(new Request(42, new Object[]{newMessage}));
     }
+
     @Override
-    public void initialize(URL url, ResourceBundle resourceBundle)
-    {
+    public void initialize(URL url, ResourceBundle resourceBundle) {
         TCPClient.gameController = this;
         this.chatBoxListView.setItems(chatObservable);
         this.playerListView.setItems(playersObservable);
@@ -143,6 +144,7 @@ public class GameController implements Initializable {
                         break;
                     case 23: // Send draw leader
                         Player drawer = (Player) request.arg[0];
+                        chatBoxListView.getItems().add(drawer.getUsername() + " is drawing next!");
                         setDrawer(drawer);
                         break;
                     case 24: // Current player guessed correctly
@@ -191,27 +193,12 @@ public class GameController implements Initializable {
                             formattedMessages.add(m.getSentBy() + ": " + m.getMessageBody());
                             c++;
                         }
-                        chatObservable.clear();
-                        chatObservable.addAll(formattedMessages);
-                        break;
-                    case 43: // New message
-                        Message newMessage = (Message) request.arg[0];
-                        String formatted = newMessage.getSentBy() + ": " + newMessage.getMessageBody();
-                        chatBoxListView.getItems().add(0, formatted.trim());
-                        break;
 
-
-                    case 50:
-                        canvas.resetCanvas();
-                        break;
-                    case 53:
-                        String coords = (String) request.arg[0];
-                        canvas.draw(coords);
-                        break;
                 }
             }
         });
     }
+
 
     public void updateImage(String coords) {
         tcpClient.sendFromUser(new Request(51, new Object[]{coords}));
@@ -223,6 +210,7 @@ public class GameController implements Initializable {
         canvas.resetCanvas();
         chatObservable.clear();
 
+        chatBoxListView.getItems().add("New Round!!!");
         // Get players and scores
         tcpClient.sendFromUser(new Request(30, null));
     }
@@ -233,17 +221,13 @@ public class GameController implements Initializable {
     }
 
     private void setDrawer(Player drawer) {
-//        for (Player p : players) {
-//            if (p.getMacAddr().equals(drawer.getMacAddr())) {
-//                p.setDrawer(true);
-//            }
-//        }
-
         if (currentPlayerName.equals(drawer.getUsername())) {
             canvas.setDrawable(true);
+            chatField.setDisable(true);
             gameStatusText.setText("Game Status: (Drawer)");
         } else {
             canvas.setDrawable(false);
+            chatField.setDisable(false);
             gameStatusText.setText("Game Status: (Guesser)");
         }
     }
