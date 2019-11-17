@@ -96,7 +96,7 @@ public class TCPClient {
         }
     }
 
-    public void handleServerCommand() {
+    public IOException handleServerCommand() {
 
         Player player;
         try {
@@ -147,7 +147,7 @@ public class TCPClient {
                     sentObj[0] = player;
                     request = new Request(12, sentObj);
                     lobbyController.sendCommand(request);
-                    handleServerCommand();
+//                    handleServerCommand();
                     break;
                 case 14: // send game port
                     Object gamePort = messageReceivedShort;
@@ -176,8 +176,6 @@ public class TCPClient {
                     sentObj[0] = player;
                     request = new Request(23, sentObj);
                     gameController.sendCommand(request);
-
-                    // TODO CONTINUE HERE ASK SERVER FOR DRAW OPTIONS
                     break;
                 case 24: //guessed correctly
                     sentObj = null;
@@ -270,8 +268,9 @@ public class TCPClient {
                     break;
             }
         } catch (IOException e) {
-            System.out.println(e);
+            return e;
         }
+        return null;
     }
 
 
@@ -323,7 +322,7 @@ public class TCPClient {
 //                    outBuffer.writeBytes(msgFromUser + "\n");
                     printWriter.println(msgFromUser);
 
-                    handleServerCommand();
+//                    handleServerCommand();
                     break;
 
                 case 10: //get game type
@@ -332,7 +331,7 @@ public class TCPClient {
                     outBuffer.writeInt(cmdSent);
                     //System.out.println(msgFromUser);
                     //waiting for respone from server with command 11
-                    handleServerCommand();
+//                    handleServerCommand();
                     break;
 
                 case 13: //select game
@@ -364,7 +363,7 @@ public class TCPClient {
                     //System.out.println(msgFromUser);
 
                     //wait for server to send list of players with command 31
-                    handleServerCommand();
+//                    handleServerCommand();
                     break;
 
                 case 33: //send player names
@@ -378,7 +377,7 @@ public class TCPClient {
                     printWriter.println(msgFromUser + "\n");
 
                     //wait for response from server with command 41
-                    handleServerCommand();
+//                    handleServerCommand();
                     break;
 
                 case 42: //send new message
@@ -392,11 +391,11 @@ public class TCPClient {
                     lenSent = msgFromUser.length();
                     outBuffer.writeInt(cmdSent);
                     outBuffer.writeInt(lenSent);
-//                    outBuffer.writeBytes(msgFromUser + "\n");
-                    printWriter.println(msgFromUser);
+                    outBuffer.writeBytes(msgFromUser + "\n");
+//                    printWriter.println(msgFromUser);
 
                     //wait for server to reply back the message to all client with command 43
-                    handleServerCommand();
+//                    handleServerCommand();
                     break;
 
                 case 51: //update image
@@ -410,7 +409,7 @@ public class TCPClient {
                     printWriter.println(msgFromUser + "\n");
 
                     //wait for server to reply back the frame to all client with command
-                    handleServerCommand();
+//                    handleServerCommand();
                     break;
 
                 case 52: //get updated image
