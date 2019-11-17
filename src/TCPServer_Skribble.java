@@ -51,6 +51,8 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
     private String[] currentDrawChoices;
     private String chosenDraw = "";
     private LinkedList<String> chatHistory = new LinkedList<>();
+    private int countCorrectGuess = 0;
+    private HashMap<String, Integer> scoreMap = new HashMap<String, Integer>();
 
     private Random ranGen = new Random();
 
@@ -127,10 +129,15 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     break;
                 case 42:
                     String msg = this.byteArrToString(pktBytes);
-                    if(msg.equals(this.chosenDraw) && this.matchStatus.equals(INMATCH)){
-                        this.cplayer.setScore(this.cplayer.getScore() + this.scoreHeuristic());
+                    String[] msgArray = msg.split(",");
+                    int timeStamp = Integer.parseInt(msgArray[0]);
+                    String userName = msgArray[1];
+                    String msgBody =  msgArray[1];
+                    if(msgBody.equals(this.chosenDraw) && this.matchStatus.equals(INMATCH)){
+                        scoreMap.put(userName, timeStamp);
+                        //this.cplayer.setScore(this.cplayer.getScore() + this.scoreHeuristic());
                     }else{
-                        String chatMsg = "[" + this.cplayer.getUsername() + "]: " + msg;
+                        String chatMsg = "[" + this.cplayer.getUsername() + "]: " + msgBody;
                         this.sendUpdates(key, 43, this.stringToByteArr(chatMsg), false);
                         this.chatHistory.add(chatMsg);
                     }
@@ -179,10 +186,36 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
     /**
      * Called when a player correctly guesses the draw choice. Updates the players score.
      */
-    private int scoreHeuristic(){
+    private void scoreHeuristic(){
         int score = 0;
         // TODO score calculation
-        return score;
+        /*Stream<Map.Entry<String,Integer>> sortedScoreMap =
+                scoreMap.entrySet().stream()
+                        .sorted(Map.Entry.comparingByValue());*/
+
+        //sort players by their score
+        List<Map.Entry<String, Integer>> list = new ArrayList<>(scoreMap.entrySet());
+        list.sort(Map.Entry.comparingByValue());
+        Map<String, Integer> sortedScoreMap = new LinkedHashMap<>();
+
+        for (Map.Entry<String, Integer> entry : list) {
+            sortedScoreMap.put(entry.getKey(), entry.getValue());
+        }
+
+
+        for (Map.Entry<String, Integer> entry : sortedScoreMap.entrySet()) {
+            String playerName = entry.getKey();
+            int timeStamp = entry.getValue();
+
+            for (Player player: this.playerNetHash.values()) {
+                if (player.getUsername().equals(playerName)) {
+                    score = (8-countCorrectGuess) * 100;
+                    player.setScore(player.getScore() + score);
+                }
+            }
+            countCorrectGuess++;
+        }
+        //return score;
     }
 
     /**
