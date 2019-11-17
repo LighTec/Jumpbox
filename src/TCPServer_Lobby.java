@@ -99,6 +99,9 @@ public class TCPServer_Lobby extends TCPServer_Base {
             case 13:
                 if (cplayer.isFirstPlayer()) {
                     String gameNameStr = byteArrToString(pktBytes);
+                    if(DEBUG){
+                        System.out.println("Game leader has sent a game to play.");
+                    }
                     boolean validGame = false;
                     for (String gam : this.GAMETYPES) {
                         if (gam.equals(gameNameStr)) {
@@ -107,6 +110,9 @@ public class TCPServer_Lobby extends TCPServer_Base {
                         }
                     }
                     if (validGame) {
+                        if(DEBUG){
+                            System.out.println("Game is valid. Setting selected game to " + gameNameStr);
+                        }
                         this.selectedGame = gameNameStr;
                     } else {
                         inBuffer.putInt(4);
@@ -142,6 +148,9 @@ public class TCPServer_Lobby extends TCPServer_Base {
     @Override
     void customRun() {
         if(!this.selectedGame.isEmpty()){
+            if(DEBUG){
+                System.out.println("Game selected, attempting to go into a game...");
+            }
             ArrayList<Player> totalPlayerList = new ArrayList<>();
             Set<Integer> keysetsel = this.playerNetHash.keySet();
             for(Integer k : keysetsel){
@@ -149,7 +158,7 @@ public class TCPServer_Lobby extends TCPServer_Base {
             }
             switch(this.selectedGame){
                 case "skribble":
-                    this.sendUpdates(null,14, null, false); // send to all to move to skribble code
+                    this.sendUpdates(null,14, new byte[0], false); // send to all to move to skribble code
                     TCPServer_Skribble skribServ = new TCPServer_Skribble(totalPlayerList, this.selector, this.playerNetHash, this.disconnectedPlayers, this.maxIntKey);
                     skribServ.runServer();
                     break;

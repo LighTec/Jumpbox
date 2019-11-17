@@ -1,6 +1,7 @@
 
 import javafx.scene.control.*;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import javafx.collections.FXCollections;
@@ -82,8 +83,9 @@ public class GameController implements Initializable {
         t = new Thread() {
             @Override
             public void run() {
-                while (true) {
-                    tcpClient.handleServerCommand();
+                IOException e = tcpClient.handleServerCommand();
+                while (e == null) {
+                    e = tcpClient.handleServerCommand();
                 }
             }
         };
@@ -91,12 +93,11 @@ public class GameController implements Initializable {
     }
 
     public void sendCommand(Request request) {
-        t.interrupt();
         int command = request.command;
         switch (command) {
 
             case 2: // Close connection
-                Main.router.showPage("Main menu", "mainmenu.fxml");
+                goToMainMenu();
                 break;
             case 4: // An error occurred
                 Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -154,7 +155,7 @@ public class GameController implements Initializable {
                 endOfGameAlert.setTitle("Game Over");
                 endOfGameAlert.setHeaderText("The game has ended. GG");
                 endOfGameAlert.show();
-                Main.router.showPage("Main Menu", "mainmenu.fxml");
+                goToMainMenu();
                 break;
 
 
@@ -221,6 +222,11 @@ public class GameController implements Initializable {
         chatBoxListView.getItems().add("New Round!!!");
         // Get players and scores
         tcpClient.sendFromUser(new Request(30, null));
+    }
+
+    private void goToMainMenu() {
+        t.interrupt();
+        Main.router.showPage("Main menu", "mainmenu.fxml");
     }
 
     private void setDrawer(Player drawer) {
