@@ -133,22 +133,18 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     break;
                 case 42:
                     String msg = this.byteArrToString(pktBytes);
-                    if(msg.equals(this.chosenDraw) && this.matchStatus.equals(INMATCH)){
-                        this.cplayer.setScore(this.cplayer.getScore() + this.scoreHeuristic());
-                        this.sendToPlayerName(key,24,null);
                     String[] msgArray = msg.split(",");
                     int timeStamp = Integer.parseInt(msgArray[0]);
                     String userName = msgArray[1];
-                    String msgBody =  msgArray[1];
-                    if(msgBody.equals(this.chosenDraw) && this.matchStatus.equals(INMATCH)){
+                    String msgBody = msgArray[1];
+                    if(msg.equals(this.chosenDraw) && this.matchStatus.equals(INMATCH)){
+                        this.sendToPlayerName(key,24,null);
                         scoreMap.put(userName, timeStamp);
-                        //this.cplayer.setScore(this.cplayer.getScore() + this.scoreHeuristic());
                     }else{
-                        String chatMsg = "[" + this.cplayer.getUsername() + "]: " + msg;
+                        String chatMsg = "[" + this.cplayer.getUsername() + "]: " + msgBody;
                         if(DEBUG){
                             System.out.println(chatMsg);
                         }
-                        String chatMsg = "[" + this.cplayer.getUsername() + "]: " + msgBody;
                         this.sendUpdates(key, 43, this.stringToByteArr(chatMsg), false);
                         this.chatHistory.add(chatMsg);
                     }
