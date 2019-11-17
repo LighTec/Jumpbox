@@ -12,6 +12,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -43,8 +44,9 @@ public class LobbyController implements Initializable {
         t = new Thread("one") {
             @Override
             public void run() {
-                while (true) {
-                    tcpClient.handleServerCommand();
+                IOException e = tcpClient.handleServerCommand();
+                while (e == null) {
+                    e = tcpClient.handleServerCommand();
                 }
             }
         };
