@@ -40,16 +40,20 @@ public class LobbyController implements Initializable {
         tcpClient.sendFromUser(new Request(1, new Object[]{currentPlayerName, serverIp}));
 
         // wait for server response
-        t = new Thread() {
+        t = new Thread("one") {
             @Override
             public void run() {
-                tcpClient.handleServerCommand();
+                while (true) {
+                    tcpClient.handleServerCommand();
+                }
             }
         };
         t.start();
     }
 
     public void sendCommand(Request request) {
+        System.out.println(Thread.currentThread().getName() + " in control");
+
         int command = request.command;
         switch (command) {
             case 12: // Set game leader
@@ -76,10 +80,16 @@ public class LobbyController implements Initializable {
                 playersObservable.add((String) request.arg[0]);
                 break;
             case 31:
-                playersObservable.clear();
-                for (Object o : request.arg) {
-                    playersObservable.add(((Player) o).getUsername());
-                }
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        playersObservable.clear();
+                        for (Object o : request.arg) {
+                            playersObservable.add(((Player) o).getUsername());
+                        }
+                    }
+                });
+
                 break;
         }
     }
