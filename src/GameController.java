@@ -137,6 +137,7 @@ public class GameController implements Initializable {
                 break;
             case 23: // Send draw leader
                 Player drawer = (Player) request.arg[0];
+                chatBoxListView.getItems().add(drawer.getUsername() + "is drawing next!");
                 setDrawer(drawer);
                 break;
             case 24: // Current player guessed correctly
@@ -217,6 +218,7 @@ public class GameController implements Initializable {
 
         for (Player p : players) p.setDrawer(false);
 
+        chatBoxListView.getItems().add("New Round!!!");
         // Get players and scores
         tcpClient.sendFromUser(new Request(30, null));
     }
@@ -230,9 +232,11 @@ public class GameController implements Initializable {
 
         if (currentPlayerName.equals(drawer.getUsername())) {
             canvas.setDrawable(true);
+            chatField.setDisable(true);
             gameStatusText.setText("Game Status: (Drawer)");
         } else {
             canvas.setDrawable(false);
+            chatField.setDisable(false);
             gameStatusText.setText("Game Status: (Guesser)");
         }
     }
