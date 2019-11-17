@@ -13,7 +13,7 @@ import java.util.Set;
 
 public class TCPServer_Lobby extends TCPServer_Base {
 
-    private static int LOBBYPORT = 9000;
+    private final int LOBBYPORT = 9000;
 
     private String selectedGame = ""; // the name of which game has been selected
     private boolean gameStarted = false; // whether a game has started
@@ -43,10 +43,10 @@ public class TCPServer_Lobby extends TCPServer_Base {
                 this.inBuffer.putInt(this.leaderName.length());
                 this.inBuffer.put(this.stringToByteArr(this.leaderName));
                 if(DEBUG){
-                    System.out.println("===========================================================");
-                    System.out.println("Leader length: " + this.leaderName.length());
-                    System.out.println("Leader name: " + this.leaderName);
-                    System.out.println("===========================================================");
+                    //System.out.println("===========================================================");
+                    //System.out.println("Leader length: " + this.leaderName.length());
+                    System.out.println("Lobby leader name: " + this.leaderName);
+                    //System.out.println("===========================================================");
                 }
                 this.inBuffer.flip();
                 z = cchannel.write(inBuffer);
@@ -55,6 +55,7 @@ public class TCPServer_Lobby extends TCPServer_Base {
                 if(DEBUG){
                     System.out.println("Bytes sent: " + z);
                 }
+                //TODO: send all command 31 (entire player list) or command 31 to new player + command 34 to everyone else (just the new player
                 inBuffer.clear(); // new command
                 Set<Integer> keyset1 = this.playerNetHash.keySet();
                 System.out.println("keyset1: " + keyset1);
@@ -147,6 +148,7 @@ public class TCPServer_Lobby extends TCPServer_Base {
             }
             switch(this.selectedGame){
                 case "skribble":
+                    this.sendUpdates(null,14, null, false); // send to all to move to skribble code
                     TCPServer_Skribble skribServ = new TCPServer_Skribble(totalPlayerList, this.selector, this.playerNetHash, this.disconnectedPlayers, this.maxIntKey);
                     skribServ.runServer();
                     break;

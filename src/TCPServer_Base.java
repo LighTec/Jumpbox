@@ -14,11 +14,11 @@ import java.util.*;
  */
 public abstract class TCPServer_Base {
 
-    static int BUFFERSIZE = 64000; // 64k buffer, enough for a 140*140 uncompressed image max
-    static int PLAYERMAX = 16;
-    static boolean DEBUG = true; // debug print statements print if this is true
-    static String[] GAMETYPES = {"skribble"}; // game types available
-    static int MAXNAMELEN = 256;
+    final int BUFFERSIZE = 64000; // 64k buffer, enough for a 140*140 uncompressed image max
+    final int PLAYERMAX = 16;
+    final boolean DEBUG = true; // debug print statements print if this is true
+    final String[] GAMETYPES = {"skribble"}; // game types available
+    final int MAXNAMELEN = 256;
 
     Charset charset = StandardCharsets.US_ASCII; // what charset we are using for byte <-> string conversion
     CharsetEncoder encoder = charset.newEncoder();
@@ -167,13 +167,7 @@ public abstract class TCPServer_Base {
                                 continue;
                             }
                             inBuffer.flip();      // make buffer available for reading
-                            if(DEBUG){
-                                System.out.println("Buffer remaining: " + this.inBuffer.remaining());
-                            }
                             int cmdNum = inBuffer.getInt(); // command number
-                            if(DEBUG){
-                                System.out.println("Buffer remaining: " + this.inBuffer.remaining());
-                            }
                             if(DEBUG) {
                                 System.out.println("CMD received: " + cmdNum);
                             }
@@ -196,9 +190,6 @@ public abstract class TCPServer_Base {
                                 }
                                 pktBytes = new byte[len]; // the command data
                                 for (int i = 0; i < len; i++) {
-                                    if(DEBUG){
-                                        System.out.println("Buffer remaining: " + this.inBuffer.remaining());
-                                    }
                                     pktBytes[i] = inBuffer.get();
                                 }
                                 while(this.inBuffer.hasRemaining()){
@@ -206,7 +197,7 @@ public abstract class TCPServer_Base {
                                 }
 
                                 if(DEBUG){
-                                    System.out.println("##########" + byteArrToString(pktBytes));
+                                    System.out.println("Data received: #" + byteArrToString(pktBytes) + "#");
                                 }
                                 inBuffer.flip();
 
@@ -342,14 +333,13 @@ public abstract class TCPServer_Base {
         }
         if(cmdLen[cmd] == -2){
             return false;
-        }else if(cmdLen[cmd] != msg.length && cmdLen[cmd] != -1){ // if the command length does not match a fixed length command, return false
+        }else if((cmdLen[cmd] != msg.length && cmdLen[cmd] != -1) || (msg == null && cmdLen[cmd] == 0)){ // if the command length does not match a fixed length command, return false
             System.err.println("SendUpdate function used incorrectly. Argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + this.byteArrToString(msg) + "\n\tMessage Length: " + msg.length + "\n\tCommand Length: " + cmdLen[cmd] + "\n\t############");
             return false;
         }else {
             for (Object kObj : this.selector.keys()) {
                     SelectionKey k = (SelectionKey) kObj; // cast the key to the correct object
                     if ((k != sender || sendToSender) && !k.isAcceptable()) { // if we send to the sender, then send to all. Otherwise, send to all but the sender.
-                        //k.interestOps(SelectionKey.OP_WRITE);
                         SocketChannel cchannelu = (SocketChannel)k.channel(); // create channel
                         if (DEBUG){
                             System.out.println("Sending to: " + this.playerNetHash.get((Integer)k.attachment()).getUsername());
@@ -357,10 +347,12 @@ public abstract class TCPServer_Base {
                         inBuffer.putInt(cmd);
                         if (cmdLen[cmd] == -1) {
                             inBuffer.putInt(msg.length);
-                        } else {
+                        } else if(cmdLen[cmd] != 0){
                             inBuffer.putInt(cmdLen[cmd]);
                         }
-                        inBuffer.put(msg);
+                        if(cmdLen[cmd] != 0) {
+                            inBuffer.put(msg);
+                        }
                         try {
                             this.inBuffer.flip();
                             int z = cchannelu.write(inBuffer);
@@ -369,7 +361,6 @@ public abstract class TCPServer_Base {
                             System.err.println("Failure attempting to send update message to player: " + this.playerNetHash.get((Integer) k.attachment()).getUsername() + "with message: " + msg);
                             e.printStackTrace();
                         }
-                        //k.interestOps(SelectionKey.OP_READ);
                     }
             }
             this.inBuffer.flip();
@@ -377,6 +368,78 @@ public abstract class TCPServer_Base {
                 System.out.println("Done with bulk sending...");
             }
             return true;
+        }
+    }
+
+    /**
+     * Sends copied commands to multiple users. Used for updating the player list, canvas, etc.
+     * @param sendToKey who to send to
+     * @param cmd The command number to send.
+     * @param msg The message to send, as a byte array
+     * @return true if a valid command, false if a not valid command is received or cmd length does not match string length.
+     */
+    boolean sendToPlayerName(SelectionKey sendToKey, int cmd, byte[] msg){
+        if(DEBUG){
+            System.out.println("SendUpdate argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + this.byteArrToString(msg) + "\n\tMessage Length: " + msg.length + "\n\tCommand Length: " + cmdLen[cmd] + "\n\t");
+        }
+        if(cmdLen[cmd] == -2){
+            return false;
+        }else if((cmdLen[cmd] != msg.length && cmdLen[cmd] != -1) || (msg == null && cmdLen[cmd] == 0)){ // if the command length does not match a fixed length command, return false
+            System.err.println("SendToPlayer function used incorrectly. Argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + this.byteArrToString(msg) + "\n\tMessage Length: " + msg.length + "\n\tCommand Length: " + cmdLen[cmd] + "\n\t############");
+            return false;
+        }else {
+            SocketChannel cchannelu = (SocketChannel)sendToKey.channel(); // create channel
+            if (DEBUG){
+                System.out.println("Sending to: " + this.playerNetHash.get((Integer)sendToKey.attachment()).getUsername());
+            }
+            inBuffer.putInt(cmd);
+            if (cmdLen[cmd] == -1) {
+                inBuffer.putInt(msg.length);
+            } else if(cmdLen[cmd] != 0){
+                inBuffer.putInt(cmdLen[cmd]);
+            }
+            if(cmdLen[cmd] != 0) {
+                inBuffer.put(msg);
+            }
+            try {
+                this.inBuffer.flip();
+                int z = cchannelu.write(inBuffer);
+                this.inBuffer.flip();
+            } catch (IOException e) {
+                System.err.println("Failure attempting to send update message to player: " + this.playerNetHash.get((Integer)sendToKey.attachment()).getUsername() + "with message: " + msg);
+                e.printStackTrace();
+            }
+            this.inBuffer.flip();
+            if(DEBUG){
+                System.out.println("Done with bulk sending...");
+            }
+            return true;
+        }
+    }
+
+    /**
+     * Sends copied commands to multiple users. Used for updating the player list, canvas, etc.
+     * @param sendTo who to send to (their username as a string)
+     * @param cmd The command number to send.
+     * @param msg The message to send, as a byte array
+     * @return true if a valid command, false if a not valid command is received or cmd length does not match string length.
+     */
+    boolean sendToPlayerName(String sendTo, int cmd, byte[] msg){
+        if(DEBUG){
+            System.out.println("SendUpdate argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + this.byteArrToString(msg) + "\n\tMessage Length: " + msg.length + "\n\tCommand Length: " + cmdLen[cmd] + "\n\t");
+        }
+        SelectionKey key = null;
+        for (Object kObj : this.selector.keys()) {
+            SelectionKey k = (SelectionKey) kObj; // cast the key to the correct object
+            if(this.playerNetHash.get((Integer)k.attachment()).getUsername() != sendTo && !k.isAcceptable()) { // if we send to the sender, then send to all. Otherwise, send to all but the sender.
+                key = k;
+            }
+        }
+        if(key == null){
+            System.err.println("SendToPlayer failed to establish which player to send to. Username given: " + sendTo);
+            return false;
+        }else{
+            return this.sendToPlayerName(key,cmd,msg);
         }
     }
 
@@ -459,7 +522,7 @@ public abstract class TCPServer_Base {
         this.cmdLen[11] = -1;
         this.cmdLen[12] = -1;
         this.cmdLen[13] = -1;
-        this.cmdLen[14] = 2;
+        this.cmdLen[14] = 0;
         this.cmdLen[20] = 4;
         this.cmdLen[21] = -1;
         this.cmdLen[22] = -1;

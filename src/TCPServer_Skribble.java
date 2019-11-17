@@ -21,24 +21,23 @@ TODO:
     keep looping until roundsLeft = 0
     if roundsLeft == 0, terminate self
  */
-
 import java.io.IOException;
 import java.nio.channels.Selector;
 import java.util.*;
 
 public class TCPServer_Skribble extends TCPServer_Base {
 
-    private static int DRAWCHOICEAMT = 3;
-    private static String[] DRAWCHOICES = {"Apple", "Banana", "Coconut", "Durian", "Grapes", "Kiwi", "Lime", "Mango",
+    private final int DRAWCHOICEAMT = 3;
+    private final String[] DRAWCHOICES = {"Apple", "Banana", "Coconut", "Durian", "Grapes", "Kiwi", "Lime", "Mango",
             "Orange", "Starfruit", "Tomato"};
-    private static int SKRIBBLEPORT = 9001;
-    private static int ROUNDTIME = 90;
-    private static int TOTALROUNDS = 3;
-    private static String DRAWPICK = "DRAWPICK";
-    private static String INMATCH = "INMATCH";
-    private static String ENDWAIT = "ENDWAIT";
-    private static String GAMEOVER = "GAMEOVER";
-
+    private final int SKRIBBLEPORT = 9001;
+    private final int ROUNDTIME = 90;
+    private final int TOTALROUNDS = 3;
+    private final String DRAWPICK = "DRAWPICK";
+    private final String INMATCH = "INMATCH";
+    private final String ENDWAIT = "ENDWAIT";
+    private final String GAMEOVER = "GAMEOVER";
+    private final String ROUNDINIT = "ROUNDINIT";
     /*
 match status options: DRAWPICK, INMATCH, ENDWAIT, GAMEOVER
 DRAWPICK: the drawer is currently picking something to draw, and the server is waiting for them to choose
@@ -46,13 +45,15 @@ INMATCH: the drawer is currently allowed to draw, and everyone else is allowed t
 ENDWAIT: after a match, we wait for a small amount of time as a cooldown period.
 GAMEOVER: all matches are complete, and the server will terminate on the next cycle.
  */
-    private String matchStatus = "";
+    private String matchStatus = ENDWAIT;
     private String drawLeader = "";
     private String[] currentDrawChoices;
     private String chosenDraw = "";
     private LinkedList<String> chatHistory = new LinkedList<>();
-
+    private LinkedList<Integer> playerRotations = new LinkedList<>();
     private Random ranGen = new Random();
+    private int currentRound = 1;
+    private long roundEndTime;
 
     /**
      * // TODO write this javadoc
@@ -69,6 +70,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
         this.playerNetHash = playerList;
         this.disconnectedPlayers = dcPlayers;
         this.maxIntKey = mik;
+        initSkribbleGame();
     }
 
     @Override
@@ -84,6 +86,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                 case 1:
                     cplayer.setUsername(byteArrToString(pktBytes)); // update player name
                     this.playerNetHash.replace(intkey, cplayer); // update hashmap player
+                    this.playerRotations.add(intkey); // add player to end of player draw list
                     break;
                 case 20:
                 case 21:
@@ -100,6 +103,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     if(this.matchStatus.equals(DRAWPICK) && this.cplayer.getUsername().equals(this.drawLeader) && validOption){
                         this.chosenDraw = chosen;
                         this.matchStatus = INMATCH;
+                        this.roundEndTime = System.currentTimeMillis() + (ROUNDTIME * 1000);
                     }else{
                         inBuffer.putInt(4);
                         inBuffer.putInt(5);
@@ -129,8 +133,12 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     String msg = this.byteArrToString(pktBytes);
                     if(msg.equals(this.chosenDraw) && this.matchStatus.equals(INMATCH)){
                         this.cplayer.setScore(this.cplayer.getScore() + this.scoreHeuristic());
+                        this.sendToPlayerName(key,24,null);
                     }else{
                         String chatMsg = "[" + this.cplayer.getUsername() + "]: " + msg;
+                        if(DEBUG){
+                            System.out.println(chatMsg);
+                        }
                         this.sendUpdates(key, 43, this.stringToByteArr(chatMsg), false);
                         this.chatHistory.add(chatMsg);
                     }
@@ -168,12 +176,96 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
         }
     }
 
+    private void initSkribbleGame(){
+        if(DEBUG){
+            System.out.println("initializing skribble...");
+        }
+        this.playerRotations.add(-1); // -1 denotes that we've made a full loop
+        for(Integer key : this.playerNetHash.keySet()){
+            this.playerRotations.add(key);
+        }
+    }
+
     @Override
     void customRun() {
         // deletes old chat history
         while(this.chatHistory.size() > 100){
-            String old = this.chatHistory.removeFirst();
+            this.chatHistory.removeFirst();
         }
+
+        // handle player disconnects
+        if(this.playerNetHash.size() != this.playerRotations.size()){
+            if(DEBUG){
+                System.out.println("Player disconnection or connection, iterating over linkedlist to remove player from list if disconnected.");
+            }
+            Iterator<Integer> rotiter = this.playerRotations.listIterator();
+            while(rotiter.hasNext()){
+                boolean found = false;
+                Integer num = rotiter.next();
+                for(Integer key : this.playerNetHash.keySet()){
+                    if(num == key){
+                        found = true;
+                    }
+                }
+                if(!found){
+                    this.playerRotations.remove(num);
+                }
+            }
+        }
+
+        //game logic
+        switch(this.matchStatus){
+            case ROUNDINIT:
+                int drawLeaderNum = this.playerRotations.removeFirst();
+                if(drawLeaderNum == -1){
+                    this.currentRound++;
+                    if(this.currentRound >= TOTALROUNDS){
+                        this.matchStatus = GAMEOVER;
+                    }
+                    this.playerRotations.addLast(-1);
+                    drawLeaderNum = this.playerRotations.removeFirst();
+                }
+                this.playerRotations.addLast(drawLeaderNum);
+
+                // select drawer
+                this.drawLeader = this.playerNetHash.get(drawLeaderNum).getUsername();
+                if(DEBUG){
+                    System.out.println("Initializing round with draw leader ");
+                }
+
+                // send to all the new drawer
+                this.sendUpdates(null, 23, this.stringToByteArr(this.drawLeader), false);
+                // get draw choices
+                this.currentDrawChoices = this.getDrawChoices();
+                String drawStr = "";
+                // format and send draw choices
+                for(String choice : this.currentDrawChoices){
+                    drawStr += choice + '\n';
+                }
+                this.sendToPlayerName(this.drawLeader, 21, this.stringToByteArr(drawStr));
+
+                this.matchStatus = DRAWPICK;
+                break;
+            case DRAWPICK:
+                // do nothing, the command handler manages this state
+                break;
+            case INMATCH:
+                if(System.currentTimeMillis() > this.roundEndTime){
+                    this.matchStatus = ENDWAIT;
+                    this.roundEndTime = System.currentTimeMillis() + 1000;
+                }
+
+                break;
+            case ENDWAIT:
+                if(System.currentTimeMillis() > this.roundEndTime){
+                    this.matchStatus = ROUNDINIT;
+                }
+                break;
+            case GAMEOVER:
+                terminated = true; // terminate the server
+                break;
+        }
+
     }
 
     /**
@@ -186,7 +278,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
     }
 
     /**
-     * Returns a round's worth of draw choices for the drawer. GUaranteed to not contain duplicates.
+     * Returns a round's worth of draw choices for the drawer. Guaranteed to not contain duplicates.
      * @return a random subset of the draw choices
      */
     private String[] getDrawChoices(){
