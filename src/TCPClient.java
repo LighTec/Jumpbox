@@ -171,7 +171,9 @@ public class TCPClient {
                     sentObj = new Object[1];
                     sentObj[0] = player;
                     request = new Request(23, sentObj);
-                    gameController.sendCommand(request);
+                    while (gameController != null) {
+                        gameController.sendCommand(request);
+                    }
                     break;
                 case 24: //guessed correctly
                     sentObj = null;
@@ -181,7 +183,9 @@ public class TCPClient {
                 case 25: // new round
                     sentObj = null;
                     request = new Request(25, sentObj);
-                    gameController.sendCommand(request);
+                    while (gameController != null) {
+                        gameController.sendCommand(request);
+                    }
                     break;
                 case 26: // end of game
                     sentObj = null;
@@ -479,11 +483,11 @@ public class TCPClient {
         this.cmdLen[11] = -1;
         this.cmdLen[12] = -1;
         this.cmdLen[13] = -1;
-        this.cmdLen[14] = 2;
+        this.cmdLen[14] = 0;
         this.cmdLen[20] = 4;
         this.cmdLen[21] = -1;
         this.cmdLen[22] = -1;
-        this.cmdLen[23] = 0;
+        this.cmdLen[23] = -1;
         this.cmdLen[24] = 0;
         this.cmdLen[25] = 0;
         this.cmdLen[26] = 0;
