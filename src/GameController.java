@@ -82,7 +82,9 @@ public class GameController implements Initializable {
         t = new Thread() {
             @Override
             public void run() {
-                tcpClient.handleServerCommand();
+                while (true) {
+                    tcpClient.handleServerCommand();
+                }
             }
         };
         t.start();

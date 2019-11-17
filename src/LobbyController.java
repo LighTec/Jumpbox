@@ -76,6 +76,10 @@ public class LobbyController implements Initializable {
                     });
                 }
                 break;
+            case 14: // Start of game
+                t.interrupt();
+                Main.router.startGame();
+                break;
             case 34: // A new player joined the game
                 playersObservable.add((String) request.arg[0]);
                 break;
@@ -96,6 +100,12 @@ public class LobbyController implements Initializable {
 
     private void onStartGame(Event e) {
         t.interrupt();
+        tcpClient.sendFromUser(
+                new Request(
+                        13,
+                        new Object[]{"skribble"}
+                )
+        );
         Main.router.startGame();
     }
 }
