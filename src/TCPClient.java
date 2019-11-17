@@ -150,11 +150,7 @@ public class TCPClient {
 //                    handleServerCommand();
                     break;
                 case 14: // send game port
-                    Object gamePort = messageReceivedShort;
-                    sentObj = new Object[1];
-                    sentObj[0] = gamePort;
-                    request = new Request(14, sentObj);
-                    gameController.sendCommand(request);
+                    lobbyController.sendCommand(new Request(14, null));
                     break;
                 case 20: //send time left
                     Object timeLeft = (Integer) messageReceivedInt;

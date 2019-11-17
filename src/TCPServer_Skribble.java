@@ -51,7 +51,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
     private String chosenDraw = "";
     private LinkedList<String> chatHistory = new LinkedList<>();
     private int countCorrectGuess = 0;
-    private HashMap<String, Integer> scoreMap = new HashMap<String, Integer>();
+    private HashMap<String, Long> scoreMap = new HashMap<String, Long>();
 
     private LinkedList<Integer> playerRotations = new LinkedList<>();
     private Random ranGen = new Random();
@@ -83,6 +83,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
 
     @Override
     void handleSpecializedCommand(int cmd, byte[] pktBytes) {
+        System.out.println("inside Skribble");
         try{
             int z = 0;
             switch(cmd){
@@ -132,20 +133,27 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     this.sendInvalidCommand();
                     break;
                 case 42:
+                    System.out.println("inside command 42");
                     String msg = this.byteArrToString(pktBytes);
                     String[] msgArray = msg.split(",");
-                    int timeStamp = Integer.parseInt(msgArray[0]);
+                    System.out.println("timeStamp: " + msgArray[0]);
+                    Long timeStamp =Long.parseLong(msgArray[0]);
+                    //int timeStamp = (int) i;
                     String userName = msgArray[1];
                     String msgBody = msgArray[1];
+                    System.out.println("userName: " + userName);
+                    System.out.println("message: " + msgBody);
                     if(msg.equals(this.chosenDraw) && this.matchStatus.equals(INMATCH)){
-                        this.sendToPlayer(key,24,null);
+                        System.out.println("correct Guess");
+                        //this.sendToPlayerName(key,24,null);
                         scoreMap.put(userName, timeStamp);
                     }else{
-                        String chatMsg = "[" + this.cplayer.getUsername() + "]: " + msgBody;
+                        System.out.println("uncorrect Guess");
+                        String chatMsg =  this.cplayer.getUsername() + "," + msgBody;
                         if(DEBUG){
                             System.out.println(chatMsg);
                         }
-                        this.sendUpdates(key, 43, this.stringToByteArr(chatMsg), false);
+                        this.sendUpdates(key, 43, this.stringToByteArr(chatMsg), true);
                         this.chatHistory.add(chatMsg);
                     }
                     break;
@@ -289,18 +297,18 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                         .sorted(Map.Entry.comparingByValue());*/
 
         //sort players by their score
-        List<Map.Entry<String, Integer>> list = new ArrayList<>(scoreMap.entrySet());
+        List<Map.Entry<String, Long>> list = new ArrayList<>(scoreMap.entrySet());
         list.sort(Map.Entry.comparingByValue());
-        Map<String, Integer> sortedScoreMap = new LinkedHashMap<>();
+        Map<String, Long> sortedScoreMap = new LinkedHashMap<>();
 
-        for (Map.Entry<String, Integer> entry : list) {
-            sortedScoreMap.put(entry.getKey(), entry.getValue());
+        for (Map.Entry<String, Long> entry : list) {
+            sortedScoreMap.put(entry.getKey(), Long.valueOf(entry.getValue()));
         }
 
 
-        for (Map.Entry<String, Integer> entry : sortedScoreMap.entrySet()) {
+        for (Map.Entry<String, Long> entry : sortedScoreMap.entrySet()) {
             String playerName = entry.getKey();
-            int timeStamp = entry.getValue();
+            Long timeStamp = entry.getValue();
 
             for (Player player: this.playerNetHash.values()) {
                 if (player.getUsername().equals(playerName)) {

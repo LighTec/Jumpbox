@@ -30,6 +30,7 @@ public class TCPServer_Lobby extends TCPServer_Base {
 
     @Override
     void handleSpecializedCommand(int cmd, byte[] pktBytes) {
+        System.out.println("inside lobby");
         try{
         int z = 0;
         switch (cmd) {
