@@ -144,13 +144,16 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     Long timeStamp =Long.parseLong(msgArray[0]);
                     //int timeStamp = (int) i;
                     String userName = msgArray[1];
-                    String msgBody = msgArray[1];
+                    String msgBody = msgArray[2];
                     System.out.println("userName: " + userName);
                     System.out.println("message: " + msgBody);
                     // if the guess is correct, and we are in a match, and this person is not the draw leader, do stuff
                     if(msgArray[2].toLowerCase().equals(this.chosenDraw.toLowerCase()) && this.matchStatus.equals(INMATCH) && this.playerNetHash.get((Integer)key.attachment()).getUsername() != this.drawLeader){
                         System.out.println("correct Guess");
                         //this.sendToPlayerName(key,24,null);
+                        String chatMsg =  this.cplayer.getUsername() + "," + "Guessed Correctly!";
+                        this.sendUpdates(key, 43, this.stringToByteArr(chatMsg), true);
+                        this.chatHistory.add(chatMsg);
                         scoreMap.put(userName, timeStamp);
                     }else{
                         System.out.println("uncorrect Guess");
