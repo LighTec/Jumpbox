@@ -1,11 +1,3 @@
-/*
- * A TCP server for the game project 'JumpBox"
- * By CPSC 441 Fall 2019 Group 6
- * Writers:
- * -  Kell Larson
- * - {Please add your name here if you edit code, ty!}
- */
-
 import java.io.IOException;
 import java.nio.CharBuffer;
 import java.util.ArrayList;

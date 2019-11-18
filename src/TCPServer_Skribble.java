@@ -1,26 +1,3 @@
-/*
- * A TCP server for the game project 'JumpBox"
- * By CPSC 441 Fall 2019 Group 6
- * Writers:
- * -  Kell Larson
- * - {Please add your name here if you edit code, ty!}
- */
-/*
-TODO:
-2. game loop: get player (how?) -> linkedList, a round would be a single iteration through the list, and a match a single next()
-    set a player as a drawer, send to all their name (same as lobby)
-    drawer is given choices from dictionary (partially complete, must send choices to user. Choice generator complete
-    drawer returns chosen choice
-    timer begins for all
-    drawer draws frames
-        all other users must gets the frames pushed to them (complete)
-    users guess
-        check is guess is correct, update score (and send updated score to all others) if right (partially complete, need score heuristic)
-    round ends
-    select new drawer via linkedlist(?)
-    keep looping until roundsLeft = 0
-    if roundsLeft == 0, terminate self
- */
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Selector;
@@ -141,7 +118,6 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     String msg = this.byteArrToString(pktBytes);
                     String[] msgArray = msg.split(",");
                     Long timeStamp =Long.parseLong(msgArray[0]);
-                    //int timeStamp = (int) i;
                     String userName = msgArray[1];
                     String msgBody = msgArray[2];
                     if(DEBUG) {
