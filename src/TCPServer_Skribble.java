@@ -21,7 +21,10 @@ TODO:
     keep looping until roundsLeft = 0
     if roundsLeft == 0, terminate self
  */
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
+
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.Selector;
 import java.util.*;
 
@@ -57,9 +60,10 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
     private Random ranGen = new Random();
     private int currentRound = 1;
     private long roundEndTime;
+    private long lastTimeTimeSent = -1;
 
     /**
-     * // TODO write this javadoc
+     * By passing all critical values, we do not have to open a new connection for the skirbble server.
      * @param players
      * @param selec
      * @param playerList
@@ -173,6 +177,9 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     break;
                 case 51:
                     if(cplayer.getUsername().equals(this.chosenDraw)) {
+                        if(DEBUG){
+                            System.out.println("Propagating update canvas frame.");
+                        }
                         this.sendUpdates(key, 53, pktBytes, true);
                     }else{
                         inBuffer.putInt(4);
@@ -239,6 +246,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
         //game logic
         switch(this.matchStatus){
             case ROUNDINIT:
+                this.lastTimeTimeSent = -1;
                 int drawLeaderNum = this.playerRotations.removeFirst();
                 if(drawLeaderNum == -1){
                     this.currentRound++;
@@ -278,6 +286,12 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                 // do nothing, the command handler manages this state
                 break;
             case INMATCH:
+                if(System.currentTimeMillis() - 1000 > this.lastTimeTimeSent){
+                    this.lastTimeTimeSent = System.currentTimeMillis();
+                    int timeLeft = (int)((this.roundEndTime - System.currentTimeMillis())/1000);
+                    byte[] timebytes = ByteBuffer.allocate(4).putInt(timeLeft).array();
+                    this.sendUpdates(null, 20, timebytes, false);
+                }
                 if(System.currentTimeMillis() > this.roundEndTime){
                     this.matchStatus = ENDWAIT;
                     this.roundEndTime = System.currentTimeMillis() + 3000;
