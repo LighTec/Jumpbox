@@ -31,7 +31,7 @@ public class TCPServer_Skribble extends TCPServer_Base {
     private final String[] DRAWCHOICES = {"Apple", "Banana", "Coconut", "Durian", "Grapes", "Kiwi", "Lime", "Mango",
             "Orange", "Starfruit", "Tomato"};
     private final int SKRIBBLEPORT = 9001;
-    private final int ROUNDTIME = 90;
+    private final int ROUNDTIME = 20;
     private final int TOTALROUNDS = 3;
     private final String DRAWPICK = "DRAWPICK";
     private final String INMATCH = "INMATCH";
@@ -137,23 +137,28 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     this.sendInvalidCommand();
                     break;
                 case 42:
-                    System.out.println("inside command 42");
                     String msg = this.byteArrToString(pktBytes);
                     String[] msgArray = msg.split(",");
-                    System.out.println("timeStamp: " + msgArray[0]);
                     Long timeStamp =Long.parseLong(msgArray[0]);
                     //int timeStamp = (int) i;
                     String userName = msgArray[1];
                     String msgBody = msgArray[1];
-                    System.out.println("userName: " + userName);
-                    System.out.println("message: " + msgBody);
+                    if(DEBUG) {
+                        System.out.println("timeStamp: " + msgArray[0]);
+                        System.out.println("userName: " + userName);
+                        System.out.println("message: " + msgBody);
+                    }
                     // if the guess is correct, and we are in a match, and this person is not the draw leader, do stuff
-                    if(msgArray[2].toLowerCase().equals(this.chosenDraw.toLowerCase()) && this.matchStatus.equals(INMATCH) && this.playerNetHash.get((Integer)key.attachment()).getUsername() != this.drawLeader){
-                        System.out.println("correct Guess");
+                    if(msgArray[2].toLowerCase().equals(this.chosenDraw.toLowerCase()) && this.matchStatus.equals(INMATCH) && !this.playerNetHash.get((Integer)key.attachment()).getUsername().equals(this.drawLeader)){
+                        if(DEBUG){
+                            System.out.println("correct Guess by user" + this.playerNetHash.get((Integer)key.attachment()).getUsername());
+                        }
                         //this.sendToPlayerName(key,24,null);
                         scoreMap.put(userName, timeStamp);
                     }else{
-                        System.out.println("uncorrect Guess");
+                        if(DEBUG){
+                            System.out.println("incorrect Guess by user" + this.playerNetHash.get((Integer)key.attachment()).getUsername());
+                        }
                         String chatMsg =  this.cplayer.getUsername() + "," + msgBody;
                         if(DEBUG){
                             System.out.println(chatMsg);
@@ -197,7 +202,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
 
     private void initSkribbleGame(){
         if(DEBUG){
-            System.out.println("initializing skribble...");
+            System.out.println("initializing skribble object...");
         }
         this.playerRotations.add(-1); // -1 denotes that we've made a full loop
         for(Integer key : this.playerNetHash.keySet()){
@@ -217,9 +222,6 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
             if(DEBUG){
                 System.out.println("Player disconnection or connection, iterating over linkedlist to remove player from list if disconnected.");
             }
-            System.out.println("PLAYERROT DEBUG");
-            System.out.println("size:" + this.playerRotations.size());
-            System.out.println("frontmost element" + this.playerRotations.peekFirst());
             for(int i = 0; i < this.playerRotations.size(); i++){
                 boolean found = false;
                 Integer num = this.playerRotations.get(i);

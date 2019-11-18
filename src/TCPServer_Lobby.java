@@ -56,7 +56,6 @@ public class TCPServer_Lobby extends TCPServer_Base {
                 if(DEBUG){
                     System.out.println("Bytes sent: " + z);
                 }
-                //TODO: send all command 31 (entire player list) or command 31 to new player + command 34 to everyone else (just the new player
                 inBuffer.clear(); // new command
                 Set<Integer> keyset1 = this.playerNetHash.keySet();
                 System.out.println("keyset1: " + keyset1);
