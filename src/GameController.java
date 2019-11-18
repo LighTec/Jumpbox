@@ -48,7 +48,7 @@ public class GameController implements Initializable {
     private DrawingCanvas canvas;
     private ArrayList<Player> players;
     private TCPClient tcpClient = Main.tcpClient;
-    private Thread t;
+    private HandleServerCommandThread t;
 
     // resets every round
     private int timeRemaining;
@@ -83,15 +83,7 @@ public class GameController implements Initializable {
         canvas = new DrawingCanvas(this, canvasParent);
 
         // wait for server response
-        t = new Thread() {
-            @Override
-            public void run() {
-                IOException e = tcpClient.handleServerCommand();
-                while (e == null) {
-                    e = tcpClient.handleServerCommand();
-                }
-            }
-        };
+        t = new HandleServerCommandThread(tcpClient);
         t.start();
     }
 
@@ -121,6 +113,7 @@ public class GameController implements Initializable {
                         t.start();
                         break;
                     case 21: // send draw options
+                        setDrawer(new Player(currentPlayerName, "", false));
                         String[] options = {(String) request.arg[0], (String) request.arg[1], (String) request.arg[2]};
                         List<String> dialogData;
                         dialogData = Arrays.asList(options);
@@ -221,7 +214,7 @@ public class GameController implements Initializable {
     }
 
     private void goToMainMenu() {
-        t.interrupt();
+        t.terminate();
         Main.router.showPage("Main menu", "mainmenu.fxml");
     }
 

@@ -236,6 +236,7 @@ public class TCPClient {
                     break;
                 case 43: //new message from server to client
                     String[] chat = msgReceived.split(",");
+                    System.out.println("Chat received: " + msgReceived);
                     //new Message(messagebody, sentBye)
                     message = new Message(chat[1], chat[0]);
                     sentObj = new Object[1];
