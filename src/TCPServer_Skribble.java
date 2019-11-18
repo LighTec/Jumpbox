@@ -21,8 +21,6 @@ TODO:
     keep looping until roundsLeft = 0
     if roundsLeft == 0, terminate self
  */
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Selector;
@@ -34,7 +32,7 @@ public class TCPServer_Skribble extends TCPServer_Base {
     private final String[] DRAWCHOICES = {"Apple", "Banana", "Coconut", "Durian", "Grapes", "Kiwi", "Lime", "Mango",
             "Orange", "Starfruit", "Tomato"};
     private final int SKRIBBLEPORT = 9001;
-    private final int ROUNDTIME = 20;
+    private final int ROUNDTIME = 90;
     private final int TOTALROUNDS = 3;
     private final String DRAWPICK = "DRAWPICK";
     private final String INMATCH = "INMATCH";
@@ -146,7 +144,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     Long timeStamp =Long.parseLong(msgArray[0]);
                     //int timeStamp = (int) i;
                     String userName = msgArray[1];
-                    String msgBody = msgArray[1];
+                    String msgBody = msgArray[2];
                     if(DEBUG) {
                         System.out.println("timeStamp: " + msgArray[0]);
                         System.out.println("userName: " + userName);
@@ -158,6 +156,9 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                             System.out.println("correct Guess by user" + this.playerNetHash.get((Integer)key.attachment()).getUsername());
                         }
                         //this.sendToPlayerName(key,24,null);
+                        String chatMsg =  this.cplayer.getUsername() + "," + "Guessed Correctly!";
+                        this.sendUpdates(key, 43, this.stringToByteArr(chatMsg), true);
+                        this.chatHistory.add(chatMsg);
                         scoreMap.put(userName, timeStamp);
                     }else{
                         if(DEBUG){
