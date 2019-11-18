@@ -193,6 +193,7 @@ public class GameController implements Initializable {
                             formattedMessages.add(m.getSentBy() + ": " + m.getMessageBody());
                             c++;
                         }
+                        break;
 
                     case 43:
                         Message message = (Message) request.arg[0];
