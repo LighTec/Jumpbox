@@ -76,14 +76,17 @@ public class LobbyController implements Initializable {
                 break;
             case 34: // A new player joined the game
                 playersObservable.add((String) request.arg[0]);
+                Main.playerNames.add((String) request.arg[0]);
                 break;
             case 31:
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
                         playersObservable.clear();
+                        Main.playerNames.clear();
                         for (Object o : request.arg) {
                             playersObservable.add(((Player) o).getUsername());
+                            Main.playerNames.add(((Player) o).getUsername());
                         }
                     }
                 });

@@ -77,6 +77,7 @@ public class GameController implements Initializable {
         TCPClient.gameController = this;
         this.chatBoxListView.setItems(chatObservable);
         this.playerListView.setItems(playersObservable);
+        playersObservable.addAll(Main.playerNames);
 
         chatField.setOnAction(this::sendMessage);
 
@@ -109,8 +110,8 @@ public class GameController implements Initializable {
                     case 20: // Send time left
                         timeRemaining = (int) request.arg[0];
                         String defaultText = "Draw here";
-                        gameTitle.setText(defaultText + "\t Time Remaining: " + timeRemaining);
-                        t.start();
+                        gameTitle.setText(defaultText + "\t\t\t\t\t\t\t Time Remaining: " + timeRemaining);
+
                         break;
                     case 21: // send draw options
                         setDrawer(new Player(currentPlayerName, "", false));
@@ -214,6 +215,7 @@ public class GameController implements Initializable {
     }
 
     private void goToMainMenu() {
+        Main.playerNames.clear();
         t.terminate();
         Main.router.showPage("Main menu", "mainmenu.fxml");
     }

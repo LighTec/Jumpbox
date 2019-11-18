@@ -374,7 +374,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
         String[] randomStrings = new String[DRAWCHOICEAMT];
         int i = 0;
         while(i < DRAWCHOICEAMT){
-            int rann = (int) Math.round((this.ranGen.nextDouble() * DRAWCHOICES.length));
+            int rann = (int) Math.round((this.ranGen.nextDouble() * DRAWCHOICES.length)) - 1;
             boolean unique = true;
             for(int j = 0; j < randomNums.length; j++){
                 if(rann == randomNums[j]){
