@@ -360,7 +360,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
             }
             if(unique){
                 randomNums[i] = rann;
-                randomStrings[i] = DRAWCHOICES[i];
+                randomStrings[i] = DRAWCHOICES[rann];
                 i++;
             }
         }
