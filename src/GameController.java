@@ -194,6 +194,10 @@ public class GameController implements Initializable {
                             c++;
                         }
 
+                    case 43:
+                        Message message = (Message) request.arg[0];
+                        String formattedMsg = message.getSentBy() + ": " + message.getMessageBody();
+                        chatObservable.add(formattedMsg);
                 }
             }
         });
