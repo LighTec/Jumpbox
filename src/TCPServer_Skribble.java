@@ -287,6 +287,9 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                 break;
             case INMATCH:
                 if(System.currentTimeMillis() - 1000 > this.lastTimeTimeSent){
+                    if(DEBUG){
+                        System.out.println("propagating time left...");
+                    }
                     this.lastTimeTimeSent = System.currentTimeMillis();
                     int timeLeft = (int)((this.roundEndTime - System.currentTimeMillis())/1000);
                     byte[] timebytes = ByteBuffer.allocate(4).putInt(timeLeft).array();
