@@ -355,13 +355,11 @@ public abstract class TCPServer_Base {
      * @return true if a valid command, false if a not valid command is received or cmd length does not match string length.
      */
     boolean sendUpdates(SelectionKey sender, int cmd, byte[] msg, boolean sendToSender){
-        /*
         if(DEBUG && msg != null){
             System.out.println("SendUpdate argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + this.byteArrToString(msg) + "\n\tMessage Length: " + msg.length + "\n\tCommand Length: " + cmdLen[cmd]);
         }else if(DEBUG){
             System.out.println("SendUpdate argument dump:\n\tCommand: " + cmd + "\n\tEmpty message" + "\n\tMessage Length: 0" + "\n\tCommand Length: " + cmdLen[cmd]);
         }
-         */
         if(cmdLen[cmd] == -2){
             return false;
         }else if((cmdLen[cmd] != msg.length && cmdLen[cmd] != -1) || (msg == null && cmdLen[cmd] == 0)){ // if the command length does not match a fixed length command, return false
@@ -415,13 +413,11 @@ public abstract class TCPServer_Base {
      * @return true if a valid command, false if a not valid command is received or cmd length does not match string length.
      */
     boolean sendToPlayer(SelectionKey sendToKey, int cmd, byte[] msg){
-        /*
         if(DEBUG && msg != null){
             System.out.println("SendToPlayer argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + this.byteArrToString(msg) + "\n\tMessage Length: " + msg.length + "\n\tCommand Length: " + cmdLen[cmd]);
         }else if(DEBUG){
             System.out.println("SendToPlayer argument dump:\n\tCommand: " + cmd + "\n\tEmpty message" + "\n\tMessage Length: 0" + "\n\tCommand Length: " + cmdLen[cmd]);
         }
-         */
         if(cmdLen[cmd] == -2){
             return false;
         }else if((cmdLen[cmd] != msg.length && cmdLen[cmd] != -1) || (msg == null && cmdLen[cmd] == 0)){ // if the command length does not match a fixed length command, return false

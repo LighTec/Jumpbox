@@ -114,6 +114,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                         this.roundEndTime = System.currentTimeMillis() + (ROUNDTIME * 1000);
                         this.matchStatus = INMATCH;
                     }else{
+
                         inBuffer.putInt(4);
                         inBuffer.putInt(5);
                         this.inBuffer.flip();
@@ -153,16 +154,18 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     // if the guess is correct, and we are in a match, and this person is not the draw leader, do stuff
                     if(msgArray[2].toLowerCase().equals(this.chosenDraw.toLowerCase()) && this.matchStatus.equals(INMATCH) && !this.playerNetHash.get((Integer)key.attachment()).getUsername().equals(this.drawLeader)){
                         if(DEBUG){
-                            System.out.println("correct Guess by user" + this.playerNetHash.get((Integer)key.attachment()).getUsername());
+                            System.out.println("Correct guess by user " + this.playerNetHash.get((Integer)key.attachment()).getUsername());
                         }
                         //this.sendToPlayerName(key,24,null);
                         String chatMsg =  this.cplayer.getUsername() + "," + "Guessed Correctly!";
                         this.sendUpdates(key, 43, this.stringToByteArr(chatMsg), true);
                         this.chatHistory.add(chatMsg);
                         scoreMap.put(userName, timeStamp);
+                    }else if(this.playerNetHash.get((Integer)key.attachment()).getUsername().equals(this.drawLeader)) {
+                        // do nothing, drawer is not allowed chat because they could give out hints
                     }else{
                         if(DEBUG){
-                            System.out.println("incorrect Guess by user" + this.playerNetHash.get((Integer)key.attachment()).getUsername());
+                            System.out.println("Incorrect guess by user " + this.playerNetHash.get((Integer)key.attachment()).getUsername());
                         }
                         String chatMsg =  this.cplayer.getUsername() + "," + msgBody;
                         if(DEBUG){
