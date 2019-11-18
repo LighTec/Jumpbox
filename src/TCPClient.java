@@ -104,7 +104,6 @@ public class TCPClient {
             cmdReceived = inBuffer.readInt();
             System.out.println("cmdReceived: "+ cmdReceived);
             lenReceived = this.cmdLen[cmdReceived];
-            System.out.println("cmdReceived: "+ cmdReceived);
             if (lenReceived == -2) {
                 //send an error
             } else if (lenReceived == -1) {
@@ -153,10 +152,10 @@ public class TCPClient {
                     lobbyController.sendCommand(new Request(14, null));
                     break;
                 case 20: //send time left
-                    Object timeLeft = (Integer) messageReceivedInt;
+                    Object timeLeft = (Integer) inBuffer.readInt();
                     sentObj = new Object[1];
                     sentObj[0] = timeLeft;
-                    request = new Request(14, sentObj);
+                    request = new Request(20, sentObj);
                     gameController.sendCommand(request);
                     break;
                 case 21: //send draw options
@@ -236,6 +235,7 @@ public class TCPClient {
                     break;
                 case 43: //new message from server to client
                     String[] chat = msgReceived.split(",");
+                    System.out.println("Chat received: " + msgReceived);
                     //new Message(messagebody, sentBye)
                     message = new Message(chat[1], chat[0]);
                     sentObj = new Object[1];

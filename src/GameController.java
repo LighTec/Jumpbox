@@ -48,7 +48,7 @@ public class GameController implements Initializable {
     private DrawingCanvas canvas;
     private ArrayList<Player> players;
     private TCPClient tcpClient = Main.tcpClient;
-    private Thread t;
+    private HandleServerCommandThread t;
 
     // resets every round
     private int timeRemaining;
@@ -77,21 +77,14 @@ public class GameController implements Initializable {
         TCPClient.gameController = this;
         this.chatBoxListView.setItems(chatObservable);
         this.playerListView.setItems(playersObservable);
+        playersObservable.addAll(Main.playerNames);
 
         chatField.setOnAction(this::sendMessage);
 
         canvas = new DrawingCanvas(this, canvasParent);
 
         // wait for server response
-        t = new Thread() {
-            @Override
-            public void run() {
-                IOException e = tcpClient.handleServerCommand();
-                while (e == null) {
-                    e = tcpClient.handleServerCommand();
-                }
-            }
-        };
+        t = new HandleServerCommandThread(tcpClient);
         t.start();
     }
 
@@ -117,10 +110,11 @@ public class GameController implements Initializable {
                     case 20: // Send time left
                         timeRemaining = (int) request.arg[0];
                         String defaultText = "Draw here";
-                        gameTitle.setText(defaultText + "\t Time Remaining: " + timeRemaining);
-                        t.start();
+                        gameTitle.setText(defaultText + "\t\t\t\t\t\t\t Time Remaining: " + timeRemaining);
+
                         break;
                     case 21: // send draw options
+                        setDrawer(new Player(currentPlayerName, "", false));
                         String[] options = {(String) request.arg[0], (String) request.arg[1], (String) request.arg[2]};
                         List<String> dialogData;
                         dialogData = Arrays.asList(options);
@@ -193,7 +187,12 @@ public class GameController implements Initializable {
                             formattedMessages.add(m.getSentBy() + ": " + m.getMessageBody());
                             c++;
                         }
+                        break;
 
+                    case 43:
+                        Message message = (Message) request.arg[0];
+                        String formattedMsg = message.getSentBy() + ": " + message.getMessageBody();
+                        chatObservable.add(formattedMsg);
                 }
             }
         });
@@ -216,7 +215,8 @@ public class GameController implements Initializable {
     }
 
     private void goToMainMenu() {
-        t.interrupt();
+        Main.playerNames.clear();
+        t.terminate();
         Main.router.showPage("Main menu", "mainmenu.fxml");
     }
 

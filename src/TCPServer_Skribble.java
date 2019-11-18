@@ -22,6 +22,7 @@ TODO:
     if roundsLeft == 0, terminate self
  */
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.Selector;
 import java.util.*;
 
@@ -57,9 +58,10 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
     private Random ranGen = new Random();
     private int currentRound = 1;
     private long roundEndTime;
+    private long lastTimeTimeSent = -1;
 
     /**
-     * // TODO write this javadoc
+     * By passing all critical values, we do not have to open a new connection for the skirbble server.
      * @param players
      * @param selec
      * @param playerList
@@ -112,6 +114,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                         this.roundEndTime = System.currentTimeMillis() + (ROUNDTIME * 1000);
                         this.matchStatus = INMATCH;
                     }else{
+
                         inBuffer.putInt(4);
                         inBuffer.putInt(5);
                         this.inBuffer.flip();
@@ -137,23 +140,33 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     this.sendInvalidCommand();
                     break;
                 case 42:
-                    System.out.println("inside command 42");
                     String msg = this.byteArrToString(pktBytes);
                     String[] msgArray = msg.split(",");
-                    System.out.println("timeStamp: " + msgArray[0]);
                     Long timeStamp =Long.parseLong(msgArray[0]);
                     //int timeStamp = (int) i;
                     String userName = msgArray[1];
-                    String msgBody = msgArray[1];
-                    System.out.println("userName: " + userName);
-                    System.out.println("message: " + msgBody);
+                    String msgBody = msgArray[2];
+                    if(DEBUG) {
+                        System.out.println("timeStamp: " + msgArray[0]);
+                        System.out.println("userName: " + userName);
+                        System.out.println("message: " + msgBody);
+                    }
                     // if the guess is correct, and we are in a match, and this person is not the draw leader, do stuff
-                    if(msgArray[2].toLowerCase().equals(this.chosenDraw.toLowerCase()) && this.matchStatus.equals(INMATCH) && this.playerNetHash.get((Integer)key.attachment()).getUsername() != this.drawLeader){
-                        System.out.println("correct Guess");
+                    if(msgArray[2].toLowerCase().equals(this.chosenDraw.toLowerCase()) && this.matchStatus.equals(INMATCH) && !this.playerNetHash.get((Integer)key.attachment()).getUsername().equals(this.drawLeader)){
+                        if(DEBUG){
+                            System.out.println("Correct guess by user " + this.playerNetHash.get((Integer)key.attachment()).getUsername());
+                        }
                         //this.sendToPlayerName(key,24,null);
+                        String chatMsg =  this.cplayer.getUsername() + "," + "Guessed Correctly!";
+                        this.sendUpdates(key, 43, this.stringToByteArr(chatMsg), true);
+                        this.chatHistory.add(chatMsg);
                         scoreMap.put(userName, timeStamp);
+                    }else if(this.playerNetHash.get((Integer)key.attachment()).getUsername().equals(this.drawLeader)) {
+                        // do nothing, drawer is not allowed chat because they could give out hints
                     }else{
-                        System.out.println("uncorrect Guess");
+                        if(DEBUG){
+                            System.out.println("Incorrect guess by user " + this.playerNetHash.get((Integer)key.attachment()).getUsername());
+                        }
                         String chatMsg =  this.cplayer.getUsername() + "," + msgBody;
                         if(DEBUG){
                             System.out.println(chatMsg);
@@ -168,6 +181,9 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     break;
                 case 51:
                     if(cplayer.getUsername().equals(this.chosenDraw)) {
+                        if(DEBUG){
+                            System.out.println("Propagating update canvas frame.");
+                        }
                         this.sendUpdates(key, 53, pktBytes, true);
                     }else{
                         inBuffer.putInt(4);
@@ -197,7 +213,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
 
     private void initSkribbleGame(){
         if(DEBUG){
-            System.out.println("initializing skribble...");
+            System.out.println("initializing skribble object...");
         }
         this.playerRotations.add(-1); // -1 denotes that we've made a full loop
         for(Integer key : this.playerNetHash.keySet()){
@@ -217,9 +233,6 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
             if(DEBUG){
                 System.out.println("Player disconnection or connection, iterating over linkedlist to remove player from list if disconnected.");
             }
-            System.out.println("PLAYERROT DEBUG");
-            System.out.println("size:" + this.playerRotations.size());
-            System.out.println("frontmost element" + this.playerRotations.peekFirst());
             for(int i = 0; i < this.playerRotations.size(); i++){
                 boolean found = false;
                 Integer num = this.playerRotations.get(i);
@@ -237,6 +250,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
         //game logic
         switch(this.matchStatus){
             case ROUNDINIT:
+                this.lastTimeTimeSent = -1;
                 int drawLeaderNum = this.playerRotations.removeFirst();
                 if(drawLeaderNum == -1){
                     this.currentRound++;
@@ -276,6 +290,15 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                 // do nothing, the command handler manages this state
                 break;
             case INMATCH:
+                if(System.currentTimeMillis() - 1000 > this.lastTimeTimeSent){
+                    if(DEBUG){
+                        System.out.println("propagating time left...");
+                    }
+                    this.lastTimeTimeSent = System.currentTimeMillis();
+                    int timeLeft = (int)((this.roundEndTime - System.currentTimeMillis())/1000);
+                    byte[] timebytes = ByteBuffer.allocate(4).putInt(timeLeft).array();
+                    this.sendUpdates(null, 20, timebytes, false);
+                }
                 if(System.currentTimeMillis() > this.roundEndTime){
                     this.matchStatus = ENDWAIT;
                     this.roundEndTime = System.currentTimeMillis() + 3000;
@@ -351,7 +374,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
         String[] randomStrings = new String[DRAWCHOICEAMT];
         int i = 0;
         while(i < DRAWCHOICEAMT){
-            int rann = (int) Math.round((this.ranGen.nextDouble() * DRAWCHOICES.length));
+            int rann = (int) Math.round((this.ranGen.nextDouble() * DRAWCHOICES.length)) - 1;
             boolean unique = true;
             for(int j = 0; j < randomNums.length; j++){
                 if(rann == randomNums[j]){
