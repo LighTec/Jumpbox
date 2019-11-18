@@ -467,7 +467,7 @@ public class TCPClient {
 
     }
 
-    private void initCmdLen() {
+    private void initCmdLen(){
         this.cmdLen = new int[256];
         Arrays.fill(this.cmdLen, -2);
         // manually init valid commands
@@ -493,6 +493,7 @@ public class TCPClient {
         this.cmdLen[31] = -1;
         this.cmdLen[32] = 0;
         this.cmdLen[33] = -1;
+        this.cmdLen[34] = -1;
         this.cmdLen[40] = 0;
         this.cmdLen[41] = -1;
         this.cmdLen[42] = -1;
@@ -502,6 +503,5 @@ public class TCPClient {
         this.cmdLen[52] = -1;
         this.cmdLen[53] = -1;
         this.cmdLen[54] = -1;
-
     }
 }

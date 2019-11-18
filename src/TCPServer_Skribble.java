@@ -105,7 +105,11 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                         }
                     }
                     if(this.matchStatus.equals(DRAWPICK) && this.cplayer.getUsername().equals(this.drawLeader) && validOption){
+                        if(DEBUG){
+                            System.out.println("Received valid draw option: " + chosen);
+                        }
                         this.chosenDraw = chosen;
+                        this.roundEndTime = System.currentTimeMillis() + (ROUNDTIME * 1000);
                         this.matchStatus = INMATCH;
                     }else{
                         inBuffer.putInt(4);
@@ -143,7 +147,8 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     String msgBody = msgArray[1];
                     System.out.println("userName: " + userName);
                     System.out.println("message: " + msgBody);
-                    if(msg.equals(this.chosenDraw) && this.matchStatus.equals(INMATCH)){
+                    // if the guess is correct, and we are in a match, and this person is not the draw leader, do stuff
+                    if(msgArray[2].toLowerCase().equals(this.chosenDraw.toLowerCase()) && this.matchStatus.equals(INMATCH) && this.playerNetHash.get((Integer)key.attachment()).getUsername() != this.drawLeader){
                         System.out.println("correct Guess");
                         //this.sendToPlayerName(key,24,null);
                         scoreMap.put(userName, timeStamp);
@@ -246,7 +251,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                 // select drawer
                 this.drawLeader = this.playerNetHash.get(drawLeaderNum).getUsername();
                 if(DEBUG){
-                    System.out.println("Initializing round with draw leader ");
+                    System.out.println("Initializing round with draw leader " + this.drawLeader);
                 }
                 // send new round
                 this.sendUpdates(null,25,new byte[0],false);
@@ -265,22 +270,37 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                 this.matchStatus = DRAWPICK;
                 break;
             case DRAWPICK:
+                if(DEBUG){
+                  //  System.out.println("Currently waiting for the drawer to pick an option.");
+                }
                 // do nothing, the command handler manages this state
                 break;
             case INMATCH:
                 if(System.currentTimeMillis() > this.roundEndTime){
                     this.matchStatus = ENDWAIT;
-                    this.roundEndTime = System.currentTimeMillis() + 1000;
+                    this.roundEndTime = System.currentTimeMillis() + 3000;
+                    if(DEBUG){
+                        System.out.println("Round over, moving to ENDWAIT.");
+                    }
+                }else{
+                 if(DEBUG){
+                    /// System.out.println("Currently in match, seconds remaining: ");
+                 }
                 }
-
                 break;
             case ENDWAIT:
                 if(System.currentTimeMillis() > this.roundEndTime){
                     this.matchStatus = ROUNDINIT;
+                    if(DEBUG){
+                        System.out.println("ENDWAIT over, moving to ROUNDINIT.");
+                    }
                 }
                 break;
             case GAMEOVER:
-                terminated = true; // terminate the server
+                if(DEBUG){
+                    System.out.println("Game over! returning to lobby.");
+                }
+                this.terminate();
                 break;
         }
 
@@ -340,7 +360,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
             }
             if(unique){
                 randomNums[i] = rann;
-                randomStrings[i] = DRAWCHOICES[i];
+                randomStrings[i] = DRAWCHOICES[rann];
                 i++;
             }
         }
