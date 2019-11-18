@@ -30,10 +30,9 @@ public abstract class TCPServer_Base {
     HashMap<Integer, Player> playerNetHash = new HashMap<>(PLAYERMAX); // must be allocated size, so max 16 currently connected players
     ByteBuffer inBuffer = ByteBuffer.allocateDirect(BUFFERSIZE);
     CharBuffer cBuffer = null;
-    ArrayList<Integer> playerKeys = new ArrayList<>(); // the list of all player keys
     Integer maxIntKey = 0; // the current integer key
     ArrayList<Player> disconnectedPlayers = new ArrayList<>(); // list of players that are not currently connected
-    boolean terminated = false; // if the lobby has terminated or not
+    private boolean terminated = false; // if the lobby has terminated or not
     private boolean[] canHandleCommand;
     Player cplayer;
     int intkey;
@@ -140,7 +139,6 @@ public abstract class TCPServer_Base {
                         // creates a new player, with the firstPlayer boolean true if no other players in the hashmap
                         Player newplayer = new Player(this.playerNetHash.isEmpty());
                         // set up a player for this connection
-                        this.playerKeys.add(this.maxIntKey);
                         this.playerNetHash.put(this.maxIntKey, newplayer);
 
                         //key.attach(this.maxIntKey); // attach an key to the key because a key is not a key if it does not contain a key within the key.
@@ -619,5 +617,21 @@ public abstract class TCPServer_Base {
 
     public void terminate(){
         this.terminated = true;
+    }
+
+    HashMap<Integer, Player> getPlayerNetHash() {
+        return playerNetHash;
+    }
+
+    Integer getMaxIntKey() {
+        return maxIntKey;
+    }
+
+    ArrayList<Player> getDisconnectedPlayers() {
+        return disconnectedPlayers;
+    }
+
+    Selector getSelector() {
+        return selector;
     }
 }

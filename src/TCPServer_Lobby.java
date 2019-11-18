@@ -151,16 +151,17 @@ public class TCPServer_Lobby extends TCPServer_Base {
             if(DEBUG){
                 System.out.println("Game selected, attempting to go into a game...");
             }
-            ArrayList<Player> totalPlayerList = new ArrayList<>();
-            Set<Integer> keysetsel = this.playerNetHash.keySet();
-            for(Integer k : keysetsel){
-                totalPlayerList.add(this.playerNetHash.get(k));
-            }
             switch(this.selectedGame){
                 case "skribble":
                     this.sendUpdates(null,14, new byte[0], false); // send to all to move to skribble code
-                    TCPServer_Skribble skribServ = new TCPServer_Skribble(totalPlayerList, this.selector, this.playerNetHash, this.disconnectedPlayers, this.maxIntKey);
+                    TCPServer_Skribble skribServ = new TCPServer_Skribble(this.selector, this.playerNetHash, this.disconnectedPlayers, this.maxIntKey);
                     skribServ.runServer();
+                    // wait for server to terminate
+                    // update local resources
+                    this.selector = skribServ.getSelector();
+                    this.playerNetHash = skribServ.getPlayerNetHash();
+                    this.disconnectedPlayers = skribServ.getDisconnectedPlayers();
+                    this.maxIntKey = skribServ.getMaxIntKey();
                     break;
                 default:
                     System.err.println("Game start error! The selected game string is invalid, resetting game string...");

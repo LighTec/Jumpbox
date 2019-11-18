@@ -62,16 +62,14 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
 
     /**
      * By passing all critical values, we do not have to open a new connection for the skirbble server.
-     * @param players
      * @param selec
      * @param playerList
      * @param dcPlayers
      * @param mik
      */
-    public TCPServer_Skribble(ArrayList<Player> players, Selector selec, HashMap<Integer, Player> playerList, ArrayList<Player> dcPlayers, int mik){
+    public TCPServer_Skribble(Selector selec, HashMap<Integer, Player> playerList, ArrayList<Player> dcPlayers, int mik){
         super(false);
         this.selector = selec;
-        this.disconnectedPlayers = players;
         this.playerNetHash = playerList;
         this.disconnectedPlayers = dcPlayers;
         this.maxIntKey = mik;
