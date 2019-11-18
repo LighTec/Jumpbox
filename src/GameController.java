@@ -221,7 +221,8 @@ public class GameController implements Initializable {
     }
 
     private void setDrawer(Player drawer) {
-        if (currentPlayerName.equals(drawer.getUsername())) {
+        System.out.println(currentPlayerName.trim() + " " + drawer.getUsername().toString().trim());
+        if (currentPlayerName.trim().equals(drawer.getUsername().trim())) {
             canvas.setDrawable(true);
             chatField.setDisable(true);
             gameStatusText.setText("Game Status: (Drawer)");

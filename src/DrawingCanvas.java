@@ -18,8 +18,8 @@ public class DrawingCanvas
     private Canvas canvas;
     private GraphicsContext gc;
     private ArrayList<String> cords;
-    private boolean drawable;
     private GameController controller;
+    private boolean drawable;
 
     DrawingCanvas(GameController controller, AnchorPane canvasParent) {
         cords = new ArrayList<String>();
@@ -27,7 +27,6 @@ public class DrawingCanvas
 
         // Create the Canvas
         canvas = new Canvas(590, 526);
-        drawable = false;
 
         // Get the graphics context of the canvas
         gc = canvas.getGraphicsContext2D();
@@ -41,10 +40,10 @@ public class DrawingCanvas
                 "-fx-border-color: black;");
 
 
-
+        canvas.addEventHandler(MouseEvent.MOUSE_PRESSED, this.mouseDown);
+        canvas.addEventHandler(MouseEvent.MOUSE_DRAGGED, this.mouseMove);
+        canvas.addEventHandler(MouseEvent.MOUSE_RELEASED,this.mouseUp);
         canvasParent.getChildren().add(canvas);
-
-
     }
 
     public void draw(String coords){
@@ -60,75 +59,65 @@ public class DrawingCanvas
         gc.clearRect(0, 0, 300, 200);
     }
 
-    public void setDrawable(boolean drawable)
+    public void setDrawable(boolean canDraw)
     {
-        this.drawable = drawable;
-        if (drawable)
-        {
-            canvas.addEventHandler(MouseEvent.MOUSE_PRESSED, mouseDown);
-            canvas.addEventHandler(MouseEvent.MOUSE_DRAGGED, mouseMove);
-            canvas.addEventHandler(MouseEvent.MOUSE_RELEASED,mouseUp);
-            resetCanvas();
-        }
-        else
-        {
-            canvas.removeEventHandler(MouseEvent.MOUSE_PRESSED, mouseDown);
-            canvas.removeEventHandler(MouseEvent.MOUSE_DRAGGED, mouseMove);
-            canvas.removeEventHandler(MouseEvent.MOUSE_RELEASED,mouseUp);
-            resetCanvas();
-        }
-
+        drawable = canDraw;
+        resetCanvas();
     }
 
     private EventHandler<MouseEvent> mouseDown =  new EventHandler<MouseEvent>() {
         @Override
         public void handle(MouseEvent event) {
-            QuadCurve quad = new QuadCurve();
-            quad.setStartX(0.0f);
-            quad.setStartY(50.0f);
-            quad.setEndX(50.0f);
-            quad.setEndY(50.0f);
-            quad.setControlX(25.0f);
-            quad.setControlY(0.0f);
-            gc.beginPath();
-            gc.moveTo(event.getX(), event.getY());
-            cords.add(event.getX() + "," + event.getY());
+            System.out.println("click " + drawable);
+            if (drawable)
+            {
+                QuadCurve quad = new QuadCurve();
+                quad.setStartX(0.0f);
+                quad.setStartY(50.0f);
+                quad.setEndX(50.0f);
+                quad.setEndY(50.0f);
+                quad.setControlX(25.0f);
+                quad.setControlY(0.0f);
+                gc.beginPath();
+                gc.moveTo(event.getX(), event.getY());
+                cords.add(event.getX() + "," + event.getY());
+            }
         }
     };
 
     private EventHandler<MouseEvent> mouseMove =  new EventHandler<MouseEvent>() {
         @Override
         public void handle(MouseEvent event) {
-            gc.lineTo(event.getX(), event.getY());
-            gc.stroke();
-            gc.closePath();
-            cords.add(event.getX() + "," + event.getY());
-            controller.updateImage(cords.get(0) + "," + cords.get(1));
-            cords.clear();
-            test++;
-            gc.beginPath();
-            gc.moveTo(event.getX(), event.getY());
-            cords.add(event.getX() + "," + event.getY());
+            if (drawable)
+            {
+                gc.lineTo(event.getX(), event.getY());
+                gc.stroke();
+                gc.closePath();
+                cords.add(event.getX() + "," + event.getY());
+                controller.updateImage(cords.get(0) + "," + cords.get(1));
+                cords.clear();
+                test++;
+                gc.beginPath();
+                gc.moveTo(event.getX(), event.getY());
+                cords.add(event.getX() + "," + event.getY());
+            }
         }
     };
 
     private EventHandler<MouseEvent> mouseUp =  new EventHandler<MouseEvent>() {
         @Override
         public void handle(MouseEvent event) {
-            gc.lineTo(event.getX(), event.getY());
-            gc.stroke();
-            gc.closePath();
-            cords.add(event.getX() + "," + event.getY());
-            controller.updateImage(cords.get(0) + "," + cords.get(1));
-            cords.clear();
-            test++;
-            System.out.println("total packets:" + test);
+            if (drawable)
+            {
+                gc.lineTo(event.getX(), event.getY());
+                gc.stroke();
+                gc.closePath();
+                cords.add(event.getX() + "," + event.getY());
+                controller.updateImage(cords.get(0) + "," + cords.get(1));
+                cords.clear();
+                test++;
+                System.out.println("total packets:" + test);
+            }
         }
     };
-
-    public void resetCanvas(ActionEvent actionEvent)
-    {
-        resetCanvas();
-
-    }
 }
