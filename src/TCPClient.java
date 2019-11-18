@@ -103,12 +103,19 @@ public class TCPClient {
             // Recieving server messages
             cmdReceived = inBuffer.readInt();
             System.out.println("cmdReceived: "+ cmdReceived);
+            if (cmdReceived > 54) {
+                return null;
+            }
             lenReceived = this.cmdLen[cmdReceived];
+            if (lenReceived > 64000) {
+                return null;
+            }
             if (lenReceived == -2) {
                 //send an error
             } else if (lenReceived == -1) {
                 lenReceived = inBuffer.readInt();
                 System.out.println("Length received: "+lenReceived);
+                if (lenReceived > 64000) return null;
                 pktBytes = new byte[lenReceived];
                 inBuffer.read(pktBytes);
                 msgReceived = new String(pktBytes, StandardCharsets.UTF_8);
@@ -350,8 +357,8 @@ public class TCPClient {
                     System.out.println(msgFromUser);
                     outBuffer.writeInt(cmdSent);
                     outBuffer.writeInt(lenSent);
-//                    outBuffer.writeBytes(msgFromUser);
-                    printWriter.println(msgFromUser + "\n");
+                    outBuffer.writeBytes(msgFromUser);
+//                    printWriter.println(msgFromUser + "\n");
                     break;
 
                 case 30: //get players and scores
