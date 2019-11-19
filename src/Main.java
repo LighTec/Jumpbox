@@ -1,6 +1,8 @@
 import javafx.application.Application;
 import javafx.stage.Stage;
 
+import java.util.ArrayList;
+
 
 public class Main extends Application {
 
@@ -9,6 +11,8 @@ public class Main extends Application {
 
     static String currentUsername;
     static String serverIp;
+
+    static ArrayList<String> playerNames = new ArrayList<>();
 
     @Override
     public void start(Stage primaryStage) throws Exception{

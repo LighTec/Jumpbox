@@ -21,7 +21,7 @@ public class LobbyController implements Initializable {
     private String currentPlayerName;
     private String serverIp;
     private TCPClient tcpClient;
-    private Thread t;
+    private HandleServerCommandThread t;
 
     @FXML
     private ListView<String> playerListView;
@@ -41,15 +41,7 @@ public class LobbyController implements Initializable {
         tcpClient.sendFromUser(new Request(1, new Object[]{currentPlayerName, serverIp}));
 
         // wait for server response
-        t = new Thread("one") {
-            @Override
-            public void run() {
-                IOException e = tcpClient.handleServerCommand();
-                while (e == null) {
-                    e = tcpClient.handleServerCommand();
-                }
-            }
-        };
+        t = new HandleServerCommandThread(tcpClient);
         t.start();
     }
 
@@ -79,19 +71,22 @@ public class LobbyController implements Initializable {
                 }
                 break;
             case 14: // Start of game
-                t.interrupt();
+                t.terminate();
                 Main.router.startGame();
                 break;
             case 34: // A new player joined the game
                 playersObservable.add((String) request.arg[0]);
+                Main.playerNames.add((String) request.arg[0]);
                 break;
             case 31:
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
                         playersObservable.clear();
+                        Main.playerNames.clear();
                         for (Object o : request.arg) {
                             playersObservable.add(((Player) o).getUsername());
+                            Main.playerNames.add(((Player) o).getUsername());
                         }
                     }
                 });
@@ -101,7 +96,7 @@ public class LobbyController implements Initializable {
     }
 
     private void onStartGame(Event e) {
-        t.interrupt();
+        t.terminate();
         tcpClient.sendFromUser(
                 new Request(
                         13,
