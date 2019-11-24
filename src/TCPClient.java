@@ -207,8 +207,14 @@ public class TCPClient {
                     sentObj = players.toArray(sentObj);
 
                     request = new Request(31, sentObj);
-                    lobbyController.sendCommand(request);
-
+                    if (lobbyController != null) {
+                        //System.out.println("in the lobby controller");
+                        lobbyController.sendCommand(request);
+                    }
+                    if (gameController != null) {
+                       // System.out.println("in the game controller");
+                        gameController.sendCommand(request);
+                    }
                     //Player player;
                     break;
                 case 32: //get player name

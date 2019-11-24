@@ -248,6 +248,13 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                 }
                 // send new round
                 this.sendUpdates(null,25,new byte[0],false);
+                //calculate the new score
+                scoreHeuristic();
+                //send the players name and their scores
+                Set<Integer> keyset31 = this.playerNetHash.keySet();
+                System.out.println("keyset31: " + keyset31);
+                String toSend31 = this.playersToSendList(keyset31);
+                this.sendUpdates(null, 31, this.stringToByteArr(toSend31), false);
                 // send to all the new drawer
                 this.sendUpdates(null, 23, this.stringToByteArr(this.drawLeader), false);
                 // get draw choices
