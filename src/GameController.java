@@ -162,17 +162,18 @@ public class GameController implements Initializable {
                     case 31: // send players and scores
                         List<Player> updatedPlayers = new ArrayList<>();
                         int i = 0;
-                        while (true) {
+                        while (i < request.arg.length) {
+                            System.out.println("inside the loop");
                             Player p = (Player) request.arg[i];
-                            if (p == null) break;
+                            //if (p == null) break;
                             updatedPlayers.add(p);
                             i++;
                         }
-                        players.clear();
-                        players.addAll(updatedPlayers);
+                       // players.clear();
+                        //players.addAll(updatedPlayers);
 
                         playersObservable.clear();
-                        for (Player p0 : players) {
+                        for (Player p0 : updatedPlayers) {
                             playersObservable.add(p0.getUsername() + ", score: " + p0.getScore());
                         }
                         break;
