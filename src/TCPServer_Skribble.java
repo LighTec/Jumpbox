@@ -65,7 +65,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
             int z = 0;
             switch(cmd){
                 case 1:
-                    cplayer.setUsername(byteArrToString(pktBytes)); // update player name
+                    cplayer.setUsername(byteArrToString(pktBytes).trim()); // update player name
                     this.playerNetHash.replace(intkey, cplayer); // update hashmap player
                     this.playerRotations.add(intkey); // add player to end of player draw list
                     break;
@@ -154,17 +154,22 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     this.sendInvalidCommand();
                     break;
                 case 51:
-                    if(cplayer.getUsername().equals(this.chosenDraw)) {
+                    if(DEBUG){
+                        System.out.println("Updated camnvas frame from " + cplayer.getUsername() + ", and the current chosen drawer is " + this.drawLeader);
+                    }
+                    if(cplayer.getUsername().equals(this.drawLeader)) {
                         if(DEBUG){
                             System.out.println("Propagating update canvas frame.");
                         }
                         this.sendUpdates(key, 53, pktBytes, true);
                     }else{
+                        /*
                         inBuffer.putInt(4);
                         inBuffer.putInt(2);
                         this.inBuffer.flip();
-                        z = cchannel.write(inBuffer); // write cannot draw
+                        z = this.cchannel.write(inBuffer); // write cannot draw
                         this.inBuffer.flip();
+                         */
                     }
                     break;
                 case 52:

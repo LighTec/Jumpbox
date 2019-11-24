@@ -35,15 +35,18 @@ public class TCPClient {
     private Object[] sentObj;
     private Player player;
     private Message message;
+    private TCPMessageHandler msgHandler;
 
     public TCPClient() {
         this.port = 9000;
         this.initCmdLen();
+        this.msgHandler = new TCPMessageHandler();
     }
 
     public TCPClient(String ip, int port) {
         this.ip = ip;
         this.port = port;
+        this.msgHandler = new TCPMessageHandler();
         this.initCmdLen();
     }
 
@@ -101,33 +104,24 @@ public class TCPClient {
         Player player;
         try {
             // Recieving server messages
-            cmdReceived = inBuffer.readInt();
-            System.out.println("cmdReceived: "+ cmdReceived);
-            if (cmdReceived > 54) {
-                return null;
-            }
-            lenReceived = this.cmdLen[cmdReceived];
-            if (lenReceived > 64000) {
-                return null;
-            }
-            if (lenReceived == -2) {
-                //send an error
-            } else if (lenReceived == -1) {
-                lenReceived = inBuffer.readInt();
-                System.out.println("Length received: "+lenReceived);
-                if (lenReceived > 64000) return null;
-                pktBytes = new byte[lenReceived];
-                inBuffer.read(pktBytes);
-                msgReceived = new String(pktBytes, StandardCharsets.UTF_8);
-            } else if (lenReceived == 4) {
-                messageReceivedInt = inBuffer.readInt();
+            while(true){
+                // wait for message to complete
+                byte[] stuff = new byte[inBuffer.available()];
+                inBuffer.readFully(stuff);
 
-            } else if (lenReceived == 2) {
-                messageReceivedShort = inBuffer.readShort();
-                //Short shortObject = new Short(messageReceivedShort);
-                //messageReceivedInt = short.intValue();
+                boolean newcmd = this.msgHandler.handleMessage(stuff);
+                if(newcmd){
+                    this.cmdReceived = this.msgHandler.getNextMessageType();
+                    this.pktBytes = this.msgHandler.getNextMessage();
+                    this.msgReceived = new String(pktBytes, StandardCharsets.US_ASCII);
+                    break;
+                }else{
+                    try{
+                        Thread.sleep(50);
+                    }catch(Exception e){
+                    }
+                }
             }
-
 
             switch (cmdReceived) {
                 case 4:
@@ -294,7 +288,7 @@ public class TCPClient {
                     msgFromUser = (String) request.arg[0];
                     playerName = msgFromUser;
                     ip = (String) request.arg[1];
-                    lenSent = msgFromUser.length();
+                    lenSent = msgFromUser.length() + 1; // with printWriter.println, it adds an extra char
                     initialize(9000);
                     System.out.println(msgFromUser);
                     System.out.println(lenSent);

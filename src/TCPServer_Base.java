@@ -28,6 +28,7 @@ public abstract class TCPServer_Base {
 
     int[] cmdLen; // command length array
     HashMap<Integer, Player> playerNetHash = new HashMap<>(PLAYERMAX); // must be allocated size, so max 16 currently connected players
+    HashMap<Integer, TCPMessageHandler> msgNetHandle = new HashMap<>();
     ByteBuffer inBuffer = ByteBuffer.allocateDirect(BUFFERSIZE);
     CharBuffer cBuffer = null;
     Integer maxIntKey = 0; // the current integer key
@@ -35,6 +36,7 @@ public abstract class TCPServer_Base {
     private boolean terminated = false; // if the lobby has terminated or not
     private boolean[] canHandleCommand;
     Player cplayer;
+    TCPMessageHandler msghandler;
     int intkey;
     SocketChannel cchannel;
     SelectionKey key;
@@ -140,6 +142,7 @@ public abstract class TCPServer_Base {
                         Player newplayer = new Player(this.playerNetHash.isEmpty());
                         // set up a player for this connection
                         this.playerNetHash.put(this.maxIntKey, newplayer);
+                        this.msgNetHandle.put(this.maxIntKey, new TCPMessageHandler());
 
                         //key.attach(this.maxIntKey); // attach an key to the key because a key is not a key if it does not contain a key within the key.
                         // Register the new connection for read operation
@@ -150,6 +153,7 @@ public abstract class TCPServer_Base {
                         SocketChannel cchannel = (SocketChannel)key.channel();
 
                         this.cplayer = this.playerNetHash.get(key.attachment()); // player for this connection
+                        this.msghandler = this.msgNetHandle.get(key.attachment());
                         this.intkey = (Integer)key.attachment();
 
                         if (key.isReadable()){
@@ -168,45 +172,22 @@ public abstract class TCPServer_Base {
                             {
                                 this.disconnectedPlayers.add(this.playerNetHash.get(intkey)); // store player in list of possible reconnects
                                 this.playerNetHash.remove(intkey);
+                                this.msgNetHandle.remove(intkey);
                                 System.out.println("read() error for a client, or a client connection has closed for player: " + cplayer.getUsername());
                                 key.cancel();  // deregister the socket
                                 continue;
                             }
                             inBuffer.flip();      // make buffer available for reading
                             try{
-                                int cmdNum = inBuffer.getInt(); // command number
-                                if(DEBUG) {
-                                    System.out.println("CMD received: " + cmdNum);
-                                }
-                                if(cmdNum < this.cmdLen.length) {
-                                    int len = this.cmdLen[cmdNum]; // command length
-                                    byte[] pktBytes;
-                                    if (len == -2) {
-                                        inBuffer.flip();
-                                        inBuffer.putInt(4);
-                                        inBuffer.putInt(4);
-                                        inBuffer.flip();
-                                        int z = cchannel.write(inBuffer);
-                                        len = 0;
-                                        // send an error to the client
-                                    } else if (len == -1) {
-                                        len = inBuffer.getInt();
-                                        if(DEBUG){
-                                            System.out.println("Variable length: " + len);
-                                            System.out.println("Buffer length: " + inBuffer.remaining());
-                                        }
-                                    }
-                                    pktBytes = new byte[len]; // the command data
-                                    for (int i = 0; i < len; i++) {
-                                        pktBytes[i] = inBuffer.get();
-                                    }
-                                    while(this.inBuffer.hasRemaining()){
-                                        this.inBuffer.get();
-                                    }
 
-                                    if(DEBUG){
-                                        System.out.println("Data received: #" + byteArrToString(pktBytes) + "#");
-                                    }
+                                byte[] newData = new byte[this.inBuffer.remaining()];
+                                this.inBuffer.get(newData, 0, newData.length);
+
+                                boolean newMsg = this.msghandler.handleMessage(newData);
+                                if(newMsg){
+                                    int cmdNum = this.msghandler.getNextMessageType();
+                                    byte[] pktBytes = this.msghandler.getNextMessage();
+
 
                                     // reallocate buffer to ensure it is clean
                                     this.inBuffer = ByteBuffer.allocateDirect(BUFFERSIZE);
@@ -223,6 +204,7 @@ public abstract class TCPServer_Base {
                                             case 2:
                                                 this.disconnectedPlayers.add(this.playerNetHash.get(intkey)); // store player in list of possible reconnects
                                                 this.playerNetHash.remove(intkey); // remove player from list
+                                                this.msgNetHandle.remove(intkey);
                                                 // send updated list w/o this player to all others
                                                 this.sendUpdates(key,31,this.stringToByteArr(this.playersToSendList(this.playerNetHash.keySet())),false);
                                                 break;
@@ -234,6 +216,7 @@ public abstract class TCPServer_Base {
                                                     if(recon.getUsername().equals(reconName)){
                                                         // Tie the disconnected player to the new connection
                                                         this.playerNetHash.replace(intkey,recon);
+                                                        this.msgNetHandle.replace(intkey, new TCPMessageHandler());
                                                     }
                                                 }
                                                 break;
@@ -245,7 +228,7 @@ public abstract class TCPServer_Base {
                                                     System.out.println("Echoing back: " + byteArrToString(pktBytes));
                                                 }
                                                 inBuffer.putInt(5);
-                                                inBuffer.putInt(len);
+                                                inBuffer.putInt(pktBytes.length);
                                                 inBuffer.put(pktBytes);
                                                 this.inBuffer.flip();
                                                 z = cchannel.write(inBuffer); // echo back
@@ -277,21 +260,6 @@ public abstract class TCPServer_Base {
                                     }else{
                                         this.handleSpecializedCommand(cmdNum, pktBytes);
                                     }
-                                }else{
-                                    inBuffer.clear();
-                                    // inBuffer.flip(); // done reading, flip back to write for output
-                                    inBuffer.putInt(4);
-                                    inBuffer.putInt(99);
-                                    this.inBuffer.flip();
-                                    int z = cchannel.write(inBuffer); // unknown error
-                                    this.inBuffer.flip();
-                                    System.err.println("CMD receive error, flushing byte buffer. Buffer data below (if any):");
-                                    System.err.println("Buffer remaining bytes: " + this.inBuffer.remaining());
-                                    byte[] bufRem = new byte[this.inBuffer.remaining()];
-                                    for(int i = 0; i < bufRem.length; i++){
-                                        bufRem[i] = this.inBuffer.get();
-                                    }
-                                    System.err.println("Buffer data begin:\n" + this.byteArrToString(bufRem) + "\nBuffer data end.");
                                 }
                             }catch(BufferUnderflowException e){
                                 System.err.println("Buffer underflow error while reading from user " + this.playerNetHash.get((Integer)key.attachment()).getUsername());

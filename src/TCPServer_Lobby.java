@@ -22,12 +22,11 @@ public class TCPServer_Lobby extends TCPServer_Base {
 
     @Override
     void handleSpecializedCommand(int cmd, byte[] pktBytes) {
-        System.out.println("inside lobby");
         try{
         int z = 0;
         switch (cmd) {
             case 1:
-                cplayer.setUsername(byteArrToString(pktBytes)); // update player name
+                cplayer.setUsername(byteArrToString(pktBytes).trim()); // update player name
                 if (cplayer.isFirstPlayer()) {
                     this.leaderName = cplayer.getUsername();
                 }
@@ -50,7 +49,7 @@ public class TCPServer_Lobby extends TCPServer_Base {
                 }
                 inBuffer.clear(); // new command
                 Set<Integer> keyset1 = this.playerNetHash.keySet();
-                System.out.println("keyset1: " + keyset1);
+                //System.out.println("keyset1: " + keyset1);
                 String toSend1 = this.playersToSendList(keyset1);
                 //inBuffer.putInt(31);
                 //inBuffer.putInt(toSend1.length());
