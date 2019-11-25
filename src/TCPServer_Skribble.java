@@ -44,10 +44,11 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
      * @param dcPlayers
      * @param mik
      */
-    public TCPServer_Skribble(Selector selec, HashMap<Integer, Player> playerList, ArrayList<Player> dcPlayers, int mik){
+    public TCPServer_Skribble(Selector selec, HashMap<Integer, Player> playerList, HashMap<Integer, TCPMessageHandler> handlers, ArrayList<Player> dcPlayers, int mik){
         super(false);
         this.selector = selec;
         this.playerNetHash = playerList;
+        this.msgNetHandle = handlers;
         this.disconnectedPlayers = dcPlayers;
         this.maxIntKey = mik;
         initSkribbleGame();

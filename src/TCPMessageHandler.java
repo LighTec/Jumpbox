@@ -1,10 +1,5 @@
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CharsetEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedList;
 
@@ -33,12 +28,12 @@ public class TCPMessageHandler {
             this.inBuffer.put(rem);
             this.rem = null;
         }
-        //System.out.println("Newdata length: " + newdata.length);
-        //System.out.println("Newdata string: " + this.byteArrToString(newdata));
-        //System.out.println("Buffer remaining to write to: " + this.inBuffer.remaining());
+        if(newdata.length == 0){
+            return this.hasMessage();
+        }
+        System.out.println("Newdata length: " + newdata.length);
         this.inBuffer.put(newdata);
         this.inBuffer.flip();
-        //System.out.println("Buffer remaining to read from: " + this.inBuffer.remaining());
         boolean con = true;
         while(this.inBuffer.hasRemaining() && con){
             switch(state){
@@ -54,19 +49,28 @@ public class TCPMessageHandler {
                     }
                     break;
                 case 1:
+                    try {
+                        int temp = this.cmdLen[this.currentCmd];
+                    }catch(ArrayIndexOutOfBoundsException e){
+                        System.err.println("Invalid command sent: " + this.currentCmd);
+                        this.state = 0;
+                        this.currentCmd = -1;
+                        break;
+                    }
                     if(this.cmdLen[this.currentCmd] == -1){
                         if(this.inBuffer.remaining() < 4){
                             //System.out.println("Not enough data in buffer for command len, ending loop...");
                             con = false;
                         }else{
                             int len = this.inBuffer.getInt();
-                            //System.out.println("Command length received: " + len);
+                            System.out.println("Command length received: " + len);
                             this.state = 2;
                             this.currentBytes = new byte[len];
                             this.bytesFilled = 0;
                         }
-                    }else if(this.currentCmd != -2){
+                    }else if(this.cmdLen[this.currentCmd] != -2){
                         this.currentBytes = new byte[this.cmdLen[this.currentCmd]];
+                        System.out.println("Byte buffer size for cmd args:  " + this.currentBytes.length);
                         if(this.cmdLen[this.currentCmd] == 0){
                             this.state = 0;
                             this.cmdQueue.add(this.currentCmd);
@@ -78,8 +82,11 @@ public class TCPMessageHandler {
                             this.bytesFilled = 0;
                         }
                     }else{
-                        System.out.println("Message handler given invalid command... Clearing buffer.");
+                        //System.out.println("Message handler given invalid command... Clearing buffer.");
+                        //System.out.println("Command given: " +this.currentCmd);
                         this.inBuffer = ByteBuffer.allocateDirect(BUFFERSIZE);
+                        this.state = 0;
+                        this.currentCmd = -1;
                     }
                     break;
                 case 2:
@@ -90,6 +97,7 @@ public class TCPMessageHandler {
                         //System.out.println("Byte buffer remaining: " +this.inBuffer.remaining());
                         this.byteQueue.add(this.currentBytes);
                         this.cmdQueue.add(this.currentCmd);
+
                         this.currentCmd = -1;
                         this.currentBytes = null;
                         this.state = 0;
@@ -105,6 +113,9 @@ public class TCPMessageHandler {
             this.inBuffer.get(rem,0,rem.length);
         }
         //System.out.println("Buffer remaining to write to after op: " + this.inBuffer.remaining());
+        if(!this.cmdQueue.isEmpty()){
+            System.out.println(this.cmdQueue);
+        }
         return !this.byteQueue.isEmpty();
     }
 
@@ -124,6 +135,10 @@ public class TCPMessageHandler {
             throw new IOException("No message is currently in queue to be read!");
         }
         return this.byteQueue.removeFirst();
+    }
+
+    public boolean hasMessage(){
+        return !this.byteQueue.isEmpty();
     }
 
     private void initCmdLen(){

@@ -145,7 +145,7 @@ public class TCPServer_Lobby extends TCPServer_Base {
             switch(this.selectedGame){
                 case "skribble":
                     this.sendUpdates(null,14, new byte[0], false); // send to all to move to skribble code
-                    TCPServer_Skribble skribServ = new TCPServer_Skribble(this.selector, this.playerNetHash, this.disconnectedPlayers, this.maxIntKey);
+                    TCPServer_Skribble skribServ = new TCPServer_Skribble(this.selector, this.playerNetHash, this.msgNetHandle, this.disconnectedPlayers, this.maxIntKey);
                     skribServ.runServer();
                     // wait for server to terminate
                     // update local resources

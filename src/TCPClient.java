@@ -108,6 +108,8 @@ public class TCPClient {
                 // wait for message to complete
                 byte[] stuff = new byte[inBuffer.available()];
                 inBuffer.readFully(stuff);
+                String stuffStr = new String(stuff, StandardCharsets.US_ASCII);
+                System.out.println(stuffStr);
 
                 boolean newcmd = this.msgHandler.handleMessage(stuff);
                 if(newcmd){
@@ -117,7 +119,7 @@ public class TCPClient {
                     break;
                 }else{
                     try{
-                        Thread.sleep(50);
+                        Thread.sleep(500);
                     }catch(Exception e){
                     }
                 }
