@@ -186,7 +186,7 @@ public abstract class TCPServer_Base {
                                 byte[] newData = new byte[this.inBuffer.remaining()];
                                 this.inBuffer.get(newData, 0, newData.length);
 
-                                boolean newMsg = this.msghandler.handleMessage(newData);
+                                this.msghandler.handleMessage(newData);
                                 this.handleCommands();
 
                             } catch (BufferUnderflowException e) {
@@ -363,6 +363,18 @@ public abstract class TCPServer_Base {
                         if(cmdLen[cmd] != 0) {
                             inBuffer.put(msg);
                         }
+                        if(cmd == 20){
+                            ByteBuffer tb = this.inBuffer.duplicate();
+                            tb.flip();
+                            byte[] bytes = new byte[tb.remaining()];
+                            tb.get(bytes,0,bytes.length);
+                            StringBuilder sb = new StringBuilder();
+                            for (byte b : bytes) {
+                                sb.append(String.format("%02X ", b));
+                            }
+                            System.out.println(sb.toString());
+                        }
+
                         try {
                             this.inBuffer.flip();
                             int z = cchannelu.write(inBuffer);

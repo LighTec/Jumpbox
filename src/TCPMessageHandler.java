@@ -49,6 +49,7 @@ public class TCPMessageHandler {
                     }
                     break;
                 case 1:
+                    // error handling
                     try {
                         int temp = this.cmdLen[this.currentCmd];
                     }catch(ArrayIndexOutOfBoundsException e){
@@ -56,6 +57,10 @@ public class TCPMessageHandler {
                         this.state = 0;
                         this.currentCmd = -1;
                         break;
+                    }
+                    System.out.println("Command to parse length for: " + this.currentCmd);
+                    if(this.currentCmd == 0){
+                        throw new UnknownError("Command 0 error! Where does the zero come from?!?");
                     }
                     if(this.cmdLen[this.currentCmd] == -1){
                         if(this.inBuffer.remaining() < 4){

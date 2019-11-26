@@ -1,6 +1,7 @@
 
 import java.io.*;
 import java.net.*;
+import java.nio.ByteBuffer;
 import java.util.*;
 import java.nio.charset.StandardCharsets;
 
@@ -8,7 +9,6 @@ public class TCPClient {
     //private static Player;
     public static GameController gameController;
     public static LobbyController lobbyController;
-    private static int[] cmdLen;
     private static String macAddress;
     private DataOutputStream outBuffer;
     private DataInputStream inBuffer;
@@ -39,7 +39,6 @@ public class TCPClient {
 
     public TCPClient() {
         this.port = 9000;
-        this.initCmdLen();
         this.msgHandler = new TCPMessageHandler();
     }
 
@@ -47,12 +46,9 @@ public class TCPClient {
         this.ip = ip;
         this.port = port;
         this.msgHandler = new TCPMessageHandler();
-        this.initCmdLen();
     }
 
     public void runClient() {
-
-        initCmdLen();
 
         //get user information
         BufferedReader inFromUser =
@@ -61,39 +57,19 @@ public class TCPClient {
 
         macAddress = getMacAddress();
 
-
-
-
-
-
         boolean logout = false;
-
-        //System.out.println("Please enter a message to be sent to the server ('logout' to terminate): ");
-
     }
 
     public void initialize(int port) {
 
         // Initialize a client socket connection to the server
         try {
-            clientSocket = new Socket(this.ip, port);
+            this.clientSocket = new Socket(this.ip, port);
+            this.outBuffer = new DataOutputStream(clientSocket.getOutputStream());
+            this.inBuffer = new DataInputStream(clientSocket.getInputStream());
+            this.printWriter = new PrintWriter(clientSocket.getOutputStream(), true);
         } catch (UnknownHostException e) {
             System.out.println(e);
-        } catch (IOException e) {
-            System.out.println(e);
-        }
-        // Initialize input and an output stream for the connection(s)
-        /*PrintWriter outBuffer =
-                new PrintWriter(clientSocket.getOutputStream(), true);
-
-        BufferedReader inBuffer =
-                new BufferedReader(new
-                        InputStreamReader(clientSocket.getInputStream()));*/
-
-        try {
-            outBuffer = new DataOutputStream(clientSocket.getOutputStream());
-            inBuffer = new DataInputStream(clientSocket.getInputStream());
-            printWriter = new PrintWriter(clientSocket.getOutputStream(), true);
         } catch (IOException e) {
             System.out.println(e);
         }
@@ -103,27 +79,36 @@ public class TCPClient {
 
         Player player;
         try {
-            // Recieving server messages
-            while(true){
-                // wait for message to complete
-                byte[] stuff = new byte[inBuffer.available()];
-                inBuffer.readFully(stuff);
-                String stuffStr = new String(stuff, StandardCharsets.US_ASCII);
-                System.out.println(stuffStr);
+            if(!this.msgHandler.hasMessage()){
+                // Recieving server messages
+                while(true){
+                    byte[] stuff = new byte[inBuffer.available()];
+                    for(int i = 0; i < stuff.length; i++){
+                        stuff[i] = inBuffer.readByte();
+                    }
+                    //System.out.println(stuff.length);
+                    if(stuff.length != 0){
+                        StringBuilder sb = new StringBuilder();
+                        for (byte b : stuff) {
+                            sb.append(String.format("%02X ", b));
+                        }
+                        System.out.println(sb.toString());
 
-                boolean newcmd = this.msgHandler.handleMessage(stuff);
-                if(newcmd){
-                    this.cmdReceived = this.msgHandler.getNextMessageType();
-                    this.pktBytes = this.msgHandler.getNextMessage();
-                    this.msgReceived = new String(pktBytes, StandardCharsets.US_ASCII);
-                    break;
-                }else{
-                    try{
-                        Thread.sleep(500);
-                    }catch(Exception e){
+                        boolean newcmd = this.msgHandler.handleMessage(stuff);
+                        if(newcmd){
+                            break;
+                        }
                     }
                 }
             }
+
+            this.cmdReceived = this.msgHandler.getNextMessageType();
+            this.pktBytes = this.msgHandler.getNextMessage();
+            this.msgReceived = new String(pktBytes, StandardCharsets.US_ASCII);
+            if(this.cmdReceived == 20){
+                System.out.println("Time received:::" + ByteBuffer.wrap(this.pktBytes).getInt());
+            }
+            System.out.println("New command received at client:\n\tCommand: " + this.cmdReceived + "\tLength: " + this.pktBytes.length + "\n\tString representation: " + this.msgReceived);
 
             switch (cmdReceived) {
                 case 4:
@@ -155,7 +140,7 @@ public class TCPClient {
                     lobbyController.sendCommand(new Request(14, null));
                     break;
                 case 20: //send time left
-                    Object timeLeft = (Integer) inBuffer.readInt();
+                    Object timeLeft = (Integer) ByteBuffer.wrap(pktBytes).getInt();
                     sentObj = new Object[1];
                     sentObj[0] = timeLeft;
                     request = new Request(20, sentObj);
@@ -474,43 +459,5 @@ public class TCPClient {
 
         return macAddress;
 
-    }
-
-    private void initCmdLen(){
-        this.cmdLen = new int[256];
-        Arrays.fill(this.cmdLen, -2);
-        // manually init valid commands
-        this.cmdLen[1] = -1; // -1 == n length
-        this.cmdLen[2] = 0;
-        this.cmdLen[3] = -1;
-        this.cmdLen[4] = 4;
-        this.cmdLen[5] = -1;
-        this.cmdLen[6] = 6;
-        this.cmdLen[10] = 0;
-        this.cmdLen[11] = -1;
-        this.cmdLen[12] = -1;
-        this.cmdLen[13] = -1;
-        this.cmdLen[14] = 0;
-        this.cmdLen[20] = 4;
-        this.cmdLen[21] = -1;
-        this.cmdLen[22] = -1;
-        this.cmdLen[23] = -1;
-        this.cmdLen[24] = 0;
-        this.cmdLen[25] = 0;
-        this.cmdLen[26] = 0;
-        this.cmdLen[30] = 0;
-        this.cmdLen[31] = -1;
-        this.cmdLen[32] = 0;
-        this.cmdLen[33] = -1;
-        this.cmdLen[34] = -1;
-        this.cmdLen[40] = 0;
-        this.cmdLen[41] = -1;
-        this.cmdLen[42] = -1;
-        this.cmdLen[43] = -1;
-        this.cmdLen[50] = 0;
-        this.cmdLen[51] = -1;
-        this.cmdLen[52] = -1;
-        this.cmdLen[53] = -1;
-        this.cmdLen[54] = -1;
     }
 }
