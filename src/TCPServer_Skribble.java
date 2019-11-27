@@ -180,18 +180,19 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     this.sendInvalidCommand();
                     break;
                 case 51:
-                    if(cplayer.getUsername().equals(this.chosenDraw)) {
-                        if(DEBUG){
-                            System.out.println("Propagating update canvas frame.");
-                        }
-                        this.sendUpdates(key, 53, pktBytes, true);
-                    }else{
-                        inBuffer.putInt(4);
-                        inBuffer.putInt(2);
-                        this.inBuffer.flip();
-                        z = cchannel.write(inBuffer); // write cannot draw
-                        this.inBuffer.flip();
-                    }
+                    this.sendUpdates(key, 53, pktBytes, true);
+//                    if(cplayer.getUsername().equals(this.chosenDraw)) {
+//                        if(DEBUG){
+//                            System.out.println("Propagating update canvas frame.");
+//                        }
+//                        this.sendUpdates(key, 53, pktBytes, true);
+//                    }else{
+//                        inBuffer.putInt(4);
+//                        inBuffer.putInt(2);
+//                        this.inBuffer.flip();
+//                        z = cchannel.write(inBuffer); // write cannot draw
+//                        this.inBuffer.flip();
+//                    }
                     break;
                 case 52:
                 case 53:
@@ -299,7 +300,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
             case INMATCH:
                 if(System.currentTimeMillis() - 1000 > this.lastTimeTimeSent){
                     if(DEBUG){
-                        System.out.println("propagating time left...");
+//                        System.out.println("propagating time left...");
                     }
                     this.lastTimeTimeSent = System.currentTimeMillis();
                     int timeLeft = (int)((this.roundEndTime - System.currentTimeMillis())/1000);
