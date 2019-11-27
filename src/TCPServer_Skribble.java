@@ -255,6 +255,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                 Set<Integer> keyset31 = this.playerNetHash.keySet();
                 System.out.println("keyset31: " + keyset31);
                 String toSend31 = this.playersToSendList(keyset31);
+                // send all players, but why?
                 this.sendUpdates(null, 31, this.stringToByteArr(toSend31), false);
                 // send to all the new drawer
                 this.sendUpdates(null, 23, this.stringToByteArr(this.drawLeader), false);

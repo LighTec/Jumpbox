@@ -10,45 +10,34 @@ public class TCPClient {
     public static GameController gameController;
     public static LobbyController lobbyController;
     private static String macAddress;
-    private DataOutputStream outBuffer;
-    private DataInputStream inBuffer;
-    private PrintWriter printWriter;
-    private Socket clientSocket;
-    private String ip;
-    private int port;
-    private int cmdFromUser;
-    private Object objFromUser;
-    private int cmdToUser;
-    private Object objToUser;
-    private String msgFromUser;
-    private int cmdReceived;
-    private int cmdSent;
-    private String msgReceived = null;
-    private String msgSent;
-    private int messageReceivedInt;
-    private short messageReceivedShort;
-    private int lenSent;
-    private int lenReceived;
-    private byte[] pktBytes;
-    private Request request;
-    private String playerName;
-    private Object[] sentObj;
-    private Player player;
-    private Message message;
-    private TCPMessageHandler msgHandler;
+    private static DataOutputStream outBuffer;
+    private static DataInputStream inBuffer;
+    private static PrintWriter printWriter;
+    private static Socket clientSocket;
+    public static String ip;
+    private static int port = 9000;
+    private static int cmdFromUser;
+    private static Object objFromUser;
+    private static int cmdToUser;
+    private static Object objToUser;
+    private static String msgFromUser;
+    private static int cmdReceived;
+    private static int cmdSent;
+    private static String msgReceived = null;
+    private static String msgSent;
+    private static int messageReceivedInt;
+    private static short messageReceivedShort;
+    private static int lenSent;
+    private static int lenReceived;
+    private static byte[] pktBytes;
+    private static Request request;
+    private static String playerName;
+    private static Object[] sentObj;
+    private static Player player;
+    private static Message message;
+    private static TCPMessageHandler msgHandler = new TCPMessageHandler();
 
-    public TCPClient() {
-        this.port = 9000;
-        this.msgHandler = new TCPMessageHandler();
-    }
-
-    public TCPClient(String ip, int port) {
-        this.ip = ip;
-        this.port = port;
-        this.msgHandler = new TCPMessageHandler();
-    }
-
-    public void runClient() {
+    public static void runClient() {
 
         //get user information
         BufferedReader inFromUser =
@@ -60,14 +49,14 @@ public class TCPClient {
         boolean logout = false;
     }
 
-    public void initialize(int port) {
+    public static synchronized void initialize(int port) {
 
         // Initialize a client socket connection to the server
         try {
-            this.clientSocket = new Socket(this.ip, port);
-            this.outBuffer = new DataOutputStream(clientSocket.getOutputStream());
-            this.inBuffer = new DataInputStream(clientSocket.getInputStream());
-            this.printWriter = new PrintWriter(clientSocket.getOutputStream(), true);
+            clientSocket = new Socket(ip, port);
+            outBuffer = new DataOutputStream(clientSocket.getOutputStream());
+            inBuffer = new DataInputStream(clientSocket.getInputStream());
+            printWriter = new PrintWriter(clientSocket.getOutputStream(), true);
         } catch (UnknownHostException e) {
             System.out.println(e);
         } catch (IOException e) {
@@ -75,11 +64,13 @@ public class TCPClient {
         }
     }
 
-    public IOException handleServerCommand() {
+    public static IOException handleServerCommand() {
+        System.out.print("CURRENT TCP CLIENT THREAD BEGIN: (handleServerCommand):"  );
+        System.out.println(Thread.currentThread().getName());
 
         Player player;
         try {
-            if(!this.msgHandler.hasMessage()){
+            if(!msgHandler.hasMessage()){
                 // Recieving server messages
                 while(true){
                     byte[] stuff = new byte[inBuffer.available()];
@@ -88,13 +79,7 @@ public class TCPClient {
                     }
                     //System.out.println(stuff.length);
                     if(stuff.length != 0){
-                        StringBuilder sb = new StringBuilder();
-                        for (byte b : stuff) {
-                            sb.append(String.format("%02X ", b));
-                        }
-                        System.out.println(sb.toString());
-
-                        boolean newcmd = this.msgHandler.handleMessage(stuff);
+                        boolean newcmd = msgHandler.handleMessage(stuff);
                         if(newcmd){
                             break;
                         }
@@ -102,13 +87,13 @@ public class TCPClient {
                 }
             }
 
-            this.cmdReceived = this.msgHandler.getNextMessageType();
-            this.pktBytes = this.msgHandler.getNextMessage();
-            this.msgReceived = new String(pktBytes, StandardCharsets.US_ASCII);
-            if(this.cmdReceived == 20){
-                System.out.println("Time received:::" + ByteBuffer.wrap(this.pktBytes).getInt());
+            cmdReceived = msgHandler.getNextMessageType();
+            pktBytes = msgHandler.getNextMessage();
+            msgReceived = new String(pktBytes, StandardCharsets.US_ASCII);
+            if(cmdReceived == 20){
+                System.out.println("Time received:::" + ByteBuffer.wrap(pktBytes).getInt());
             }
-            System.out.println("New command received at client:\n\tCommand: " + this.cmdReceived + "\tLength: " + this.pktBytes.length + "\n\tString representation: " + this.msgReceived);
+            System.out.println("New command received at client:\n\tCommand: " + cmdReceived + "\tLength: " + pktBytes.length + "\n\tString representation: " + msgReceived);
 
             switch (cmdReceived) {
                 case 4:
@@ -136,7 +121,8 @@ public class TCPClient {
                     lobbyController.sendCommand(request);
 //                    handleServerCommand();
                     break;
-                case 14: // send game port
+                case 14: // send game start
+                    System.out.println("Made it to game start!");
                     lobbyController.sendCommand(new Request(14, null));
                     break;
                 case 20: //send time left
@@ -153,7 +139,7 @@ public class TCPClient {
                     break;
                 case 23: //send draw leader
                     player = new Player(true);
-                    System.out.println("Drawer: " + playerName);
+                    System.out.println("Drawer received: " + playerName);
                     player.setUsername(playerName);
                     sentObj = new Object[1];
                     sentObj[0] = player;
@@ -167,6 +153,7 @@ public class TCPClient {
                     gameController.sendCommand(request);
                     break;
                 case 25: // new round
+                    System.out.println("made it to new round");
                     sentObj = null;
                     request = new Request(25, sentObj);
                     while (gameController == null) { }
@@ -181,7 +168,7 @@ public class TCPClient {
                     System.out.println(msgReceived);
                     List<Player> players = new ArrayList<>();
                     //Player player;
-                    String[] allPlayers = msgReceived.split("\\r?\\n");
+                    String[] allPlayers = msgReceived.split("\n");
                     for (String eachPlayer : allPlayers) {
                         String[] playerInfo = eachPlayer.split(",");
                         player = new Player();
@@ -260,14 +247,21 @@ public class TCPClient {
                     break;
             }
         } catch (IOException e) {
+            System.out.print("CURRENT TCP CLIENT THREAD END: (handleServerCommand):"  );
+            System.out.println(Thread.currentThread().getName());
             return e;
         }
+        System.out.print("CURRENT TCP CLIENT THREAD END: (handleServerCommand):"  );
+        System.out.println(Thread.currentThread().getName());
         return null;
     }
 
 
 
-    public void sendFromUser(Request request) {
+    public static synchronized void sendFromUser(Request request) {
+        System.out.print("CURRENT TCP CLIENT THREAD: (sendFromUser):  ");
+        System.out.println(Thread.currentThread().getName());
+
         cmdFromUser = request.command;
         //objFromUser = request.arg;
         //handleUsercommand(cmdFromUser, objFromUser);
@@ -281,8 +275,11 @@ public class TCPClient {
                     msgFromUser = (String) request.arg[0];
                     playerName = msgFromUser;
                     ip = (String) request.arg[1];
+
+                    TCPClient.initialize(9000); // initialize self
+                    Main.t.start(); // start tcpclient receive thread
+
                     lenSent = msgFromUser.length() + 1; // with printWriter.println, it adds an extra char
-                    initialize(9000);
                     System.out.println(msgFromUser);
                     System.out.println(lenSent);
                     outBuffer.writeInt(cmdSent);
@@ -409,24 +406,18 @@ public class TCPClient {
                     break;
                 default:
                     break;
-
-
             }
         } catch (IOException e) {
             System.out.println(e);
         }
     }
 
-    public void sentToUser() {
-
-    }
-
-    public int getCmd() {
+    public static int getCmd() {
         return cmdFromUser;
     }
     // this code is taken from
     // https://www.mkyong.com/java/how-to-get-mac-address-in-java/
-    public String getMacAddress() {
+    public static String getMacAddress() {
         InetAddress ip;
         String macAddress = null;
         try {

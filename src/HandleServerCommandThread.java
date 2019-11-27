@@ -1,26 +1,27 @@
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class HandleServerCommandThread extends Thread{
 
-    private AtomicBoolean running = new AtomicBoolean();
-    private TCPClient tcpClient;
+    private boolean running = true;
 
-    HandleServerCommandThread(TCPClient tcpClient) {
-        this.tcpClient = tcpClient;
+    HandleServerCommandThread(){
+    }
+/*
+    public void pauseTCP() {
+        running = false;
     }
 
-    public void terminate() {
-        running.set(false);
+    public void resumeTCP(){
     }
-
+*/
     @Override
     public void run() {
-        running.set(true);
-        while (running.get()) {
-            IOException e = tcpClient.handleServerCommand();
-            if (e != null) {
-                terminate();
+        while(true){
+            while (running) {
+                IOException e = TCPClient.handleServerCommand();
+                if (e != null) {
+                  //  pauseTCP();
+                }
             }
         }
     }

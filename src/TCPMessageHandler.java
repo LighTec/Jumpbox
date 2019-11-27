@@ -23,6 +23,26 @@ public class TCPMessageHandler {
     }
 
     public boolean handleMessage(byte[] newdata){
+
+        StringBuilder sb = new StringBuilder();
+        String sb2 = "";
+        String sb3 = "";
+        for (byte b : newdata) {
+            sb.append(String.format("%02X  ", b));
+            if((b & 0xFF) == 0x0A){
+                sb2 += "\\n  ";
+            }else if((b & 0xFF) == 0x09){
+                sb2 += "\\t  ";
+            }else{
+                sb2 += ((char) b) + "   ";
+            }
+            sb3 += String.format("%-4s", b & 0xFF);
+        }
+        System.out.println("=======RECEIVING DATA======");
+        System.out.println(sb.toString());
+        System.out.println(sb2);
+        System.out.println(sb3);
+        System.out.println("==========================");
         this.inBuffer = ByteBuffer.allocateDirect(BUFFERSIZE);
         if(this.rem != null){
             this.inBuffer.put(rem);

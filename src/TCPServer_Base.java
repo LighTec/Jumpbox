@@ -165,11 +165,6 @@ public abstract class TCPServer_Base {
                             // Open input and output streams
                             this.inBuffer = ByteBuffer.allocateDirect(BUFFERSIZE);
 
-                            try {
-                                Thread.sleep(5); // sleep thread while waiting for message to finish arriving
-                            } catch (Exception e) {
-                            }
-
                             // Read from socket
                             int bytesRecv = cchannel.read(inBuffer);
                             if (bytesRecv <= 0) {
@@ -279,15 +274,7 @@ public abstract class TCPServer_Base {
                             inBuffer.flip();
                             break;
                         case 30:
-                            Set<Integer> keyset30 = this.playerNetHash.keySet();
-                            inBuffer.putInt(31);
-                            String toSend30 = this.playersToSendList(keyset30);
-                            inBuffer.putInt(toSend30.length());
-                            // creates a string in the form of username,score\n for all players, then turns it into a byte array
-                            inBuffer.put(this.stringToByteArr(toSend30));
-                            this.inBuffer.flip();
-                            z = cchannel.write(inBuffer);
-                            this.inBuffer.flip();
+                            this.sendUpdates(key,31,this.stringToByteArr(this.playersToSendList(this.playerNetHash.keySet())),false);
                             break;
                         case 33:
                             cplayer.setUsername(byteArrToString(pktBytes));
@@ -336,9 +323,9 @@ public abstract class TCPServer_Base {
      */
     boolean sendUpdates(SelectionKey sender, int cmd, byte[] msg, boolean sendToSender){
         if(DEBUG && msg != null){
-            System.out.println("SendUpdate argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + this.byteArrToString(msg) + "\n\tMessage Length: " + msg.length + "\n\tCommand Length: " + cmdLen[cmd]);
+            //System.out.println("SendUpdate argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + this.byteArrToString(msg) + "\n\tMessage Length: " + msg.length + "\n\tCommand Length: " + cmdLen[cmd]);
         }else if(DEBUG){
-            System.out.println("SendUpdate argument dump:\n\tCommand: " + cmd + "\n\tEmpty message" + "\n\tMessage Length: 0" + "\n\tCommand Length: " + cmdLen[cmd]);
+            //System.out.println("SendUpdate argument dump:\n\tCommand: " + cmd + "\n\tEmpty message" + "\n\tMessage Length: 0" + "\n\tCommand Length: " + cmdLen[cmd]);
         }
         if(cmdLen[cmd] == -2){
             return false;
@@ -363,17 +350,31 @@ public abstract class TCPServer_Base {
                         if(cmdLen[cmd] != 0) {
                             inBuffer.put(msg);
                         }
-                        if(cmd == 20){
-                            ByteBuffer tb = this.inBuffer.duplicate();
-                            tb.flip();
-                            byte[] bytes = new byte[tb.remaining()];
-                            tb.get(bytes,0,bytes.length);
-                            StringBuilder sb = new StringBuilder();
-                            for (byte b : bytes) {
-                                sb.append(String.format("%02X ", b));
+
+                        ByteBuffer tb = this.inBuffer.duplicate();
+                        tb.flip();
+                        byte[] bytes = new byte[tb.remaining()];
+                        tb.get(bytes,0,bytes.length);
+                        StringBuilder sb = new StringBuilder();
+                        String sb2 = "";
+                        String sb3 = "";
+                        for (byte b : bytes) {
+                            sb.append(String.format("%02X  ", b));
+                            if((b & 0xFF) == 0x0A){
+                                sb2 += "\\n  ";
+                            }else if((b & 0xFF) == 0x09){
+                                sb2 += "\\t  ";
+                            }else{
+                                sb2 += ((char) b) + "   ";
                             }
-                            System.out.println(sb.toString());
+                            sb3 += String.format("%-4s", b & 0xFF);
                         }
+                        System.out.println("=======SENDING DATA=======");
+                        System.out.println("Receiver: " + this.playerNetHash.get(k.attachment()).getUsername());
+                        System.out.println(sb.toString());
+                        System.out.println(sb2);
+                        System.out.println(sb3);
+                        System.out.println("==========================");
 
                         try {
                             this.inBuffer.flip();
@@ -399,9 +400,9 @@ public abstract class TCPServer_Base {
      */
     boolean sendToPlayer(SelectionKey sendToKey, int cmd, byte[] msg){
         if(DEBUG && msg != null){
-            System.out.println("SendToPlayer argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + this.byteArrToString(msg) + "\n\tMessage Length: " + msg.length + "\n\tCommand Length: " + cmdLen[cmd]);
+            //System.out.println("SendToPlayer argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + this.byteArrToString(msg) + "\n\tMessage Length: " + msg.length + "\n\tCommand Length: " + cmdLen[cmd]);
         }else if(DEBUG){
-            System.out.println("SendToPlayer argument dump:\n\tCommand: " + cmd + "\n\tEmpty message" + "\n\tMessage Length: 0" + "\n\tCommand Length: " + cmdLen[cmd]);
+            //System.out.println("SendToPlayer argument dump:\n\tCommand: " + cmd + "\n\tEmpty message" + "\n\tMessage Length: 0" + "\n\tCommand Length: " + cmdLen[cmd]);
         }
         if(cmdLen[cmd] == -2){
             return false;
@@ -411,11 +412,7 @@ public abstract class TCPServer_Base {
         }else {
             this.inBuffer = ByteBuffer.allocateDirect(BUFFERSIZE);
             SocketChannel cchannelu = (SocketChannel)sendToKey.channel(); // create channel
-            /*
-            if (DEBUG){
-                System.out.println("Sending to: " + this.playerNetHash.get((Integer)sendToKey.attachment()).getUsername());
-            }
-             */
+
             inBuffer.putInt(cmd);
             if (cmdLen[cmd] == -1) {
                 inBuffer.putInt(msg.length);
@@ -423,6 +420,32 @@ public abstract class TCPServer_Base {
             if(cmdLen[cmd] != 0) {
                 inBuffer.put(msg);
             }
+
+            ByteBuffer tb = this.inBuffer.duplicate();
+            tb.flip();
+            byte[] bytes = new byte[tb.remaining()];
+            tb.get(bytes,0,bytes.length);
+            StringBuilder sb = new StringBuilder();
+            String sb2 = "";
+            String sb3 = "";
+            for (byte b : bytes) {
+                sb.append(String.format("%02X  ", b));
+                if((b & 0xFF) == 0x0A){
+                    sb2 += "\\n  ";
+                }else if((b & 0xFF) == 0x09){
+                    sb2 += "\\t  ";
+                }else{
+                    sb2 += ((char) b) + "   ";
+                }
+                sb3 += String.format("%-4s", b & 0xFF);
+            }
+            System.out.println("=======SENDING DATA=======");
+            System.out.println("Receiver: " + this.playerNetHash.get(sendToKey.attachment()).getUsername());
+            System.out.println(sb.toString());
+            System.out.println(sb2);
+            System.out.println(sb3);
+            System.out.println("==========================");
+
             try {
                 this.inBuffer.flip();
                 int z = cchannelu.write(inBuffer);
@@ -432,11 +455,6 @@ public abstract class TCPServer_Base {
                 e.printStackTrace();
             }
             this.inBuffer.flip();
-            /*
-            if(DEBUG){
-                System.out.println("Done with bulk sending...");
-            }
-             */
             return true;
         }
     }

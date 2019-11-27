@@ -6,13 +6,9 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -20,8 +16,6 @@ public class LobbyController implements Initializable {
 
     private String currentPlayerName;
     private String serverIp;
-    private TCPClient tcpClient;
-    private HandleServerCommandThread t;
 
     @FXML
     private ListView<String> playerListView;
@@ -36,13 +30,8 @@ public class LobbyController implements Initializable {
         this.playerListView.setItems(playersObservable);
         this.currentPlayerName = Main.currentUsername;
         this.serverIp = Main.serverIp;
-        this.tcpClient = Main.tcpClient;
 
-        tcpClient.sendFromUser(new Request(1, new Object[]{currentPlayerName, serverIp}));
-
-        // wait for server response
-        t = new HandleServerCommandThread(tcpClient);
-        t.start();
+        TCPClient.sendFromUser(new Request(1, new Object[]{currentPlayerName, serverIp}));
     }
 
     public void sendCommand(Request request) {
@@ -71,7 +60,7 @@ public class LobbyController implements Initializable {
                 }
                 break;
             case 14: // Start of game
-                t.terminate();
+                //Main.t.pauseTCP();
                 Main.router.startGame();
                 break;
             case 34: // A new player joined the game
@@ -96,8 +85,7 @@ public class LobbyController implements Initializable {
     }
 
     private void onStartGame(Event e) {
-        t.terminate();
-        tcpClient.sendFromUser(
+        TCPClient.sendFromUser(
                 new Request(
                         13,
                         new Object[]{"skribble"}

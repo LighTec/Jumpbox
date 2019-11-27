@@ -7,16 +7,17 @@ import java.util.ArrayList;
 public class Main extends Application {
 
     static Router router;
-    static TCPClient tcpClient;
 
     static String currentUsername;
     static String serverIp;
+
+    static HandleServerCommandThread t;
 
     static ArrayList<String> playerNames = new ArrayList<>();
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        tcpClient = new TCPClient();
+        t = new HandleServerCommandThread();
 
         router = new Router(primaryStage);
         router.showPage("Main Menu", "mainmenu.fxml");

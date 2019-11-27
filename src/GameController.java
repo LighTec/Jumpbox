@@ -2,8 +2,6 @@
 import javafx.application.Platform;
 import javafx.scene.control.*;
 
-import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import javafx.collections.FXCollections;
@@ -11,13 +9,7 @@ import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Group;
-import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -47,8 +39,6 @@ public class GameController implements Initializable {
     private ChatBox chatBox;
     private DrawingCanvas canvas;
     private ArrayList<Player> players;
-    private TCPClient tcpClient = Main.tcpClient;
-    private HandleServerCommandThread t;
 
     // resets every round
     private int timeRemaining;
@@ -69,7 +59,7 @@ public class GameController implements Initializable {
         source.clear();
 
         Message newMessage = new Message(message, currentPlayerName);
-        tcpClient.sendFromUser(new Request(42, new Object[]{newMessage}));
+        TCPClient.sendFromUser(new Request(42, new Object[]{newMessage}));
     }
 
     @Override
@@ -84,8 +74,7 @@ public class GameController implements Initializable {
         canvas = new DrawingCanvas(this, canvasParent);
 
         // wait for server response
-        t = new HandleServerCommandThread(tcpClient);
-        t.start();
+        //Main.t.resumeTCP();
     }
 
     public void sendCommand(Request request) {
@@ -105,13 +94,10 @@ public class GameController implements Initializable {
                         alert.setContentText(s);
                         alert.showAndWait();
                         break;
-
-
                     case 20: // Send time left
                         timeRemaining = (int) request.arg[0];
                         String defaultText = "Draw here";
                         gameTitle.setText(defaultText + "\t\t\t\t\t\t\t Time Remaining: " + timeRemaining);
-
                         break;
                     case 21: // send draw options
                         setDrawer(new Player(currentPlayerName, "", false));
@@ -131,7 +117,7 @@ public class GameController implements Initializable {
                         }
 
                         System.out.println("Selection: " + selected);
-                        tcpClient.sendFromUser(new Request(22, new Object[]{selected}));
+                        TCPClient.sendFromUser(new Request(22, new Object[]{selected}));
                         break;
                     case 22: // Send chosen draw option
                         currentWord = (String) request.arg[0];
@@ -201,7 +187,7 @@ public class GameController implements Initializable {
 
 
     public void updateImage(String coords) {
-        tcpClient.sendFromUser(new Request(51, new Object[]{coords}));
+        TCPClient.sendFromUser(new Request(51, new Object[]{coords}));
         System.out.println("CLIENT COORDS:" + coords);
     }
 
@@ -212,12 +198,11 @@ public class GameController implements Initializable {
 
         chatBoxListView.getItems().add("New Round!!!");
         // Get players and scores
-        tcpClient.sendFromUser(new Request(30, null));
+       TCPClient.sendFromUser(new Request(30, null));
     }
 
     private void goToMainMenu() {
         Main.playerNames.clear();
-        t.terminate();
         Main.router.showPage("Main menu", "mainmenu.fxml");
     }
 
