@@ -377,7 +377,7 @@ public class TCPClient {
                     String timeStamp = message.getTimestamp();
                     msgFromUser = timeStamp + "," + userName + "," + messageBody;
                     System.out.println(msgFromUser);
-                    lenSent = msgFromUser.length();
+                    lenSent = msgFromUser.length() + 1; // +1 for the \n below
                     outBuffer.writeInt(cmdSent);
                     outBuffer.writeInt(lenSent);
                     outBuffer.writeBytes(msgFromUser + "\n");
@@ -393,9 +393,9 @@ public class TCPClient {
                     lenSent = msgFromUser.length();
                     System.out.println(msgFromUser);
                     outBuffer.writeInt(cmdSent);
-                    outBuffer.writeInt(lenSent);
+                    outBuffer.writeInt(lenSent + 1); // +1 because .println
 //                    outBuffer.writeBytes(msgFromUser + "\n");
-                    printWriter.println(msgFromUser + "\n");
+                    printWriter.println(msgFromUser);
 
                     //wait for server to reply back the frame to all client with command
 //                    handleServerCommand();

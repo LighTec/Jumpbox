@@ -120,14 +120,14 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     String[] msgArray = msg.split(",");
                     Long timeStamp =Long.parseLong(msgArray[0]);
                     String userName = msgArray[1];
-                    String msgBody = msgArray[2];
+                    String msgBody = msgArray[2].trim().toLowerCase();
                     if(DEBUG) {
                         System.out.println("timeStamp: " + msgArray[0]);
                         System.out.println("userName: " + userName);
                         System.out.println("message: " + msgBody);
                     }
                     // if the guess is correct, and we are in a match, and this person is not the draw leader, do stuff
-                    if(msgArray[2].toLowerCase().equals(this.chosenDraw.toLowerCase()) && this.matchStatus.equals(INMATCH) && !this.playerNetHash.get((Integer)key.attachment()).getUsername().equals(this.drawLeader)){
+                    if(msgBody.equals(this.chosenDraw.toLowerCase()) && this.matchStatus.equals(INMATCH) && !this.playerNetHash.get((Integer)key.attachment()).getUsername().equals(this.drawLeader)){
                         if(DEBUG){
                             System.out.println("Correct guess by user " + this.playerNetHash.get((Integer)key.attachment()).getUsername());
                         }
