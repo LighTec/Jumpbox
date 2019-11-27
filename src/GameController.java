@@ -184,6 +184,10 @@ public class GameController implements Initializable {
 
                     case 53:
                         canvas.draw((String) request.arg[0]);
+                        break;
+                    default:
+                        System.err.println("Unknown command attempted to be sent.");
+                        break;
                 }
             }
         });
