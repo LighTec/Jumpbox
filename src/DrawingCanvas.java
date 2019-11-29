@@ -49,9 +49,10 @@ public class DrawingCanvas
 
     public void draw(String coords){
         String[] coordList = coords.split(",");
+        String newcolor = coordList[4].substring(0,coordList[4].length() - 3);
 
-        System.out.println("COLOORRRR: " + coordList[4]);
-        gc.setStroke(Color.web(coordList[4]));
+        System.out.println("COLOORRRR: " + newcolor);
+        gc.setStroke(Color.web(newcolor));
         gc.beginPath();
         gc.moveTo(Double.parseDouble(coordList[0]), Double.parseDouble(coordList[1]));
         gc.lineTo(Double.parseDouble(coordList[2]), Double.parseDouble(coordList[3]));

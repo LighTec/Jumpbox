@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.nio.CharBuffer;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Set;
 
 public class TCPServer_Lobby extends TCPServer_Base {
@@ -31,38 +32,35 @@ public class TCPServer_Lobby extends TCPServer_Base {
                     this.leaderName = cplayer.getUsername();
                 }
                 this.playerNetHash.replace(intkey, cplayer); // update hashmap player
-                this.inBuffer.putInt(12);
-                this.inBuffer.putInt(this.leaderName.length());
-                this.inBuffer.put(this.stringToByteArr(this.leaderName));
+                this.sendToPlayer(key, 12, this.stringToByteArr(this.leaderName));
                 if(DEBUG){
                     //System.out.println("===========================================================");
                     //System.out.println("Leader length: " + this.leaderName.length());
                     System.out.println("Lobby leader name: " + this.leaderName);
                     //System.out.println("===========================================================");
                 }
-                this.inBuffer.flip();
-                z = cchannel.write(inBuffer);
-                this.inBuffer.flip();
-                // send player list to the newly connected player
-                if(DEBUG){
-                    System.out.println("Bytes sent: " + z);
-                }
-                inBuffer.clear(); // new command
                 Set<Integer> keyset1 = this.playerNetHash.keySet();
                 //System.out.println("keyset1: " + keyset1);
                 String toSend1 = this.playersToSendList(keyset1);
-                //inBuffer.putInt(31);
-                //inBuffer.putInt(toSend1.length());
-                // creates a string in the form of username,score\n for all players, then turns it into a byte array
-                //inBuffer.put(this.stringToByteArr(toSend1));
-                //this.inBuffer.flip();
-                //z = cchannel.write(inBuffer);
-
-                //this.inBuffer.flip();
                 this.sendUpdates(key, 31, this.stringToByteArr(toSend1), true);
                 //String updateMsg = cplayer.getUsername() + ',' + cplayer.getScore() + '\n';
                 //this.sendUpdates(key, 34, this.stringToByteArr(updateMsg), false);
-
+                break;
+            case 3:
+                String reconName = this.byteArrToString(pktBytes);
+                Iterator<Player> reconPlayers = this.disconnectedPlayers.iterator();
+                while(reconPlayers.hasNext()){
+                    Player recon = reconPlayers.next();
+                    if(recon.getUsername().equals(reconName)){
+                        // Tie the disconnected player to the new connection
+                        this.playerNetHash.replace(intkey,recon);
+                        this.msgNetHandle.replace(intkey, new TCPMessageHandler());
+                    }
+                }
+                Set<Integer> keyset3 = this.playerNetHash.keySet();
+                //System.out.println("keyset1: " + keyset1);
+                String toSend3 = this.playersToSendList(keyset3);
+                this.sendUpdates(key, 31, this.stringToByteArr(toSend3), true);
                 break;
             case 10:
                 inBuffer.putInt(11); // return command number

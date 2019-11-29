@@ -245,18 +245,6 @@ public abstract class TCPServer_Base {
                             // send updated list w/o this player to all others
                             this.sendUpdates(key,31,this.stringToByteArr(this.playersToSendList(this.playerNetHash.keySet())),false);
                             break;
-                        case 3:
-                            String reconName = this.byteArrToString(pktBytes);
-                            Iterator<Player> reconPlayers = this.disconnectedPlayers.iterator();
-                            while(reconPlayers.hasNext()){
-                                Player recon = reconPlayers.next();
-                                if(recon.getUsername().equals(reconName)){
-                                    // Tie the disconnected player to the new connection
-                                    this.playerNetHash.replace(intkey,recon);
-                                    this.msgNetHandle.replace(intkey, new TCPMessageHandler());
-                                }
-                            }
-                            break;
                         case 4:
                             System.out.println("Error received: " + ByteBuffer.wrap(pktBytes).getInt() + " from user " + this.playerNetHash.get((Integer)key.attachment()).getUsername()); // print error
                             break;
@@ -598,9 +586,8 @@ public abstract class TCPServer_Base {
         this.canHandleCommand = new boolean[256];
         Arrays.fill(this.canHandleCommand, false);
         // manually fill all commands that this can handle:
-        // candle handle cmd 1 due to lobby requiring game leader to be the first who connects
+        // cannot handle cmd 1 or 3 due to lobby requiring game leader to be the first who connects
         this.canHandleCommand[2] = true;
-        this.canHandleCommand[3] = true;
         this.canHandleCommand[4] = true;
         this.canHandleCommand[5] = true;
         this.canHandleCommand[6] = true;

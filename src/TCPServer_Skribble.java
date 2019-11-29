@@ -1,3 +1,5 @@
+import sun.awt.image.ImageWatched;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Selector;
@@ -28,6 +30,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
     private String[] currentDrawChoices;
     private String chosenDraw = "";
     private LinkedList<String> chatHistory = new LinkedList<>();
+    private LinkedList<byte[]> drawHistory = new LinkedList<>();
     private int countCorrectGuess = 0;
     private HashMap<String, Long> scoreMap = new HashMap<String, Long>();
 
@@ -69,6 +72,37 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     cplayer.setUsername(byteArrToString(pktBytes).trim()); // update player name
                     this.playerNetHash.replace(intkey, cplayer); // update hashmap player
                     this.playerRotations.add(intkey); // add player to end of player draw list
+                    break;
+                case 3:
+                    String reconName = this.byteArrToString(pktBytes);
+                    Iterator<Player> reconPlayers = this.disconnectedPlayers.iterator();
+                    while(reconPlayers.hasNext()){
+                        Player recon = reconPlayers.next();
+                        if(recon.getUsername().equals(reconName)){
+                            // Tie the disconnected player to the new connection
+                            this.playerNetHash.replace(intkey,recon);
+                            this.msgNetHandle.replace(intkey, new TCPMessageHandler());
+                        }
+                    }
+                    Set<Integer> keyset3 = this.playerNetHash.keySet();
+                    //System.out.println("keyset1: " + keyset1);
+                    String toSend3 = this.playersToSendList(keyset3);
+                    this.sendUpdates(key, 31, this.stringToByteArr(toSend3), true);
+                    this.sendToPlayer(key,14, null); // send to all to move to skribble code
+                    if(this.matchStatus.equals(this.INMATCH)){
+                        this.sendToPlayer(key,25,new byte[0]);
+                        //send the players name and their scores
+                        Set<Integer> keyset3_1 = this.playerNetHash.keySet();
+                        System.out.println("keyset3_1: " + keyset3_1);
+                        String toSend3_1 = this.playersToSendList(keyset3_1);
+                        this.sendToPlayer(key, 31, this.stringToByteArr(toSend3_1));
+                        // send to all the new drawer
+                        this.sendToPlayer(key, 23, this.stringToByteArr(this.drawLeader));
+                        Iterator drawHistoryIter = this.drawHistory.listIterator();
+                        while(drawHistoryIter.hasNext()){
+                            this.sendToPlayer(key, 53, pktBytes);
+                        }
+                    }
                     break;
                 case 20:
                 case 21:
@@ -152,10 +186,11 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     break;
                 case 43:
                 case 50:
-                    this.sendInvalidCommand();
+                    this.sendUpdates(key,50, null, false);
                     break;
                 case 51:
-                    this.sendUpdates(key, 53, pktBytes, true);
+                    this.sendUpdates(key, 53, pktBytes, false);
+                    this.drawHistory.addLast(pktBytes);
 //                    if(cplayer.getUsername().equals(this.chosenDraw)) {
 //                        if(DEBUG){
 //                            System.out.println("Propagating update canvas frame.");
