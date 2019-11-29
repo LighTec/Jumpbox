@@ -119,6 +119,7 @@ public class TCPClient {
                     sentObj = new Object[1];
                     sentObj[0] = player;
                     request = new Request(12, sentObj);
+                    while (lobbyController == null) {}
                     lobbyController.sendCommand(request);
 //                    handleServerCommand();
                     break;
