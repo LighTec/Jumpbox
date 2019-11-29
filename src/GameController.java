@@ -33,7 +33,6 @@ public class GameController implements Initializable {
     @FXML
     private Button clearDrawing;
 
-    private String currentPlayerName = Main.currentUsername;
     private String serverIp = Main.serverIp;
 
     private ChatBox chatBox;
@@ -58,7 +57,7 @@ public class GameController implements Initializable {
         System.out.println(message);
         source.clear();
 
-        Message newMessage = new Message(message, currentPlayerName);
+        Message newMessage = new Message(message, Main.currentUsername);
         TCPClient.sendFromUser(new Request(42, new Object[]{newMessage}));
     }
 
@@ -100,7 +99,7 @@ public class GameController implements Initializable {
                         gameTitle.setText(defaultText + "\t\t\t\t\t\t\t Time Remaining: " + timeRemaining);
                         break;
                     case 21: // send draw options
-                        setDrawer(new Player(currentPlayerName, "", false));
+                        setDrawer(new Player(Main.currentUsername, "", false));
                         String[] options = {(String) request.arg[0], (String) request.arg[1], (String) request.arg[2]};
                         List<String> dialogData;
                         dialogData = Arrays.asList(options);
@@ -215,8 +214,8 @@ public class GameController implements Initializable {
     }
 
     private void setDrawer(Player drawer) {
-        System.out.println(currentPlayerName.trim() + " " + drawer.getUsername().toString().trim());
-        if (currentPlayerName.trim().equals(drawer.getUsername().trim())) {
+        System.out.println(Main.currentUsername.trim() + " " + drawer.getUsername().toString().trim());
+        if (Main.currentUsername.trim().equals(drawer.getUsername().trim())) {
             canvas.setDrawable(true);
             chatField.setDisable(true);
             gameStatusText.setText("Game Status: (Drawer)");

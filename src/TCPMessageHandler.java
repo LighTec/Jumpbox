@@ -24,6 +24,7 @@ public class TCPMessageHandler {
 
     public boolean handleMessage(byte[] newdata){
 
+        /* // for debugging
         StringBuilder sb = new StringBuilder();
         String sb2 = "";
         String sb3 = "";
@@ -43,6 +44,7 @@ public class TCPMessageHandler {
         System.out.println(sb2);
         System.out.println(sb3);
         System.out.println("==========================");
+         */
         this.inBuffer = ByteBuffer.allocateDirect(BUFFERSIZE);
         if(this.rem != null){
             this.inBuffer.put(rem);

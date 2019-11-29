@@ -65,8 +65,8 @@ public class TCPClient {
     }
 
     public static IOException handleServerCommand() {
-        System.out.print("CURRENT TCP CLIENT THREAD BEGIN: (handleServerCommand):"  );
-        System.out.println(Thread.currentThread().getName());
+        //System.out.print("CURRENT TCP CLIENT THREAD BEGIN: (handleServerCommand):"  );
+        //System.out.println(Thread.currentThread().getName());
 
         Player player;
         try {
@@ -139,7 +139,13 @@ public class TCPClient {
                     break;
                 case 23: //send draw leader
                     player = new Player(true);
-                    System.out.println("Drawer received: " + playerName);
+                    System.out.println("################################");
+                    System.out.println("DRAWER RECEIVED: " + playerName);
+                    System.out.println("################################");
+                    if(playerName.equals(Main.currentUsername)){
+                        System.out.println("I AM THE DRAWER!!!");
+                        System.out.println("################################");
+                    }
                     player.setUsername(playerName);
                     sentObj = new Object[1];
                     sentObj[0] = player;
@@ -247,20 +253,20 @@ public class TCPClient {
                     break;
             }
         } catch (IOException e) {
-            System.out.print("CURRENT TCP CLIENT THREAD END: (handleServerCommand):"  );
-            System.out.println(Thread.currentThread().getName());
+            //System.out.print("CURRENT TCP CLIENT THREAD END: (handleServerCommand):"  );
+            //System.out.println(Thread.currentThread().getName());
             return e;
         }
-        System.out.print("CURRENT TCP CLIENT THREAD END: (handleServerCommand):"  );
-        System.out.println(Thread.currentThread().getName());
+        //System.out.print("CURRENT TCP CLIENT THREAD END: (handleServerCommand):"  );
+        //System.out.println(Thread.currentThread().getName());
         return null;
     }
 
 
 
     public static synchronized void sendFromUser(Request request) {
-        System.out.print("CURRENT TCP CLIENT THREAD: (sendFromUser):  ");
-        System.out.println(Thread.currentThread().getName());
+        //System.out.print("CURRENT TCP CLIENT THREAD: (sendFromUser):  ");
+        //System.out.println(Thread.currentThread().getName());
 
         cmdFromUser = request.command;
         //objFromUser = request.arg;

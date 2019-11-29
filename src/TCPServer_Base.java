@@ -114,13 +114,11 @@ public abstract class TCPServer_Base {
         try {
             while (!terminated)
             {
-
                 if (selector.select(500) < 0)
                 {
                     System.out.println("select() failed");
                     System.exit(1);
                 }
-
                 // Get set of ready sockets
                 Set readyKeys = selector.selectedKeys();
                 Iterator readyItor = readyKeys.iterator();
@@ -369,13 +367,14 @@ public abstract class TCPServer_Base {
                             }
                             sb3 += String.format("%-4s", b & 0xFF);
                         }
+                        /*  // debug statement for packets
                         System.out.println("=======SENDING DATA=======");
                         System.out.println("Receiver: " + this.playerNetHash.get(k.attachment()).getUsername());
                         System.out.println(sb.toString());
                         System.out.println(sb2);
                         System.out.println(sb3);
                         System.out.println("==========================");
-
+                        */
                         try {
                             this.inBuffer.flip();
                             int z = cchannelu.write(inBuffer);
@@ -439,13 +438,14 @@ public abstract class TCPServer_Base {
                 }
                 sb3 += String.format("%-4s", b & 0xFF);
             }
+            /* // debug statement for packets
             System.out.println("=======SENDING DATA=======");
             System.out.println("Receiver: " + this.playerNetHash.get(sendToKey.attachment()).getUsername());
             System.out.println(sb.toString());
             System.out.println(sb2);
             System.out.println(sb3);
             System.out.println("==========================");
-
+            */
             try {
                 this.inBuffer.flip();
                 int z = cchannelu.write(inBuffer);
