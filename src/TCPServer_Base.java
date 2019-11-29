@@ -328,7 +328,7 @@ public abstract class TCPServer_Base {
         if(cmdLen[cmd] == -2){
             return false;
         }else if((cmdLen[cmd] != msg.length && cmdLen[cmd] != -1) || (msg == null && cmdLen[cmd] == 0)){ // if the command length does not match a fixed length command, return false
-            System.err.println("SendUpdate function used incorrectly. Argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + this.byteArrToString(msg) + "\n\tMessage Length: " + msg.length + "\n\tCommand Length: " + cmdLen[cmd] + "\n\t############");
+//            System.err.println("SendUpdate function used incorrectly. Argument dump:\n\tCommand: " + cmd + "\n\tMessage:" + this.byteArrToString(msg) + "\n\tMessage Length: " + msg.length + "\n\tCommand Length: " + cmdLen[cmd] + "\n\t############");
             return false;
         }else {
             for (Object kObj : this.selector.keys()) {

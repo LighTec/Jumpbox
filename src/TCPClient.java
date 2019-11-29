@@ -36,6 +36,7 @@ public class TCPClient {
     private static Player player;
     private static Message message;
     private static TCPMessageHandler msgHandler = new TCPMessageHandler();
+    private static int totalCanvasPackets = 0;
 
     public static void runClient() {
 
@@ -159,6 +160,7 @@ public class TCPClient {
                     gameController.sendCommand(request);
                     break;
                 case 25: // new round
+                    totalCanvasPackets = 0;
                     System.out.println("made it to new round");
                     sentObj = null;
                     request = new Request(25, sentObj);
@@ -222,7 +224,7 @@ public class TCPClient {
                     break;
                 case 43: //new message from server to client
                     String[] chat = msgReceived.split(",");
-                    System.out.println("Chat received: " + msgReceived);
+                    System.out.println("MESSAGE RECEIVED: " + msgReceived + " CURR TIME MILLIS: "+System.currentTimeMillis());
                     //new Message(messagebody, sentBye)
                     message = new Message(chat[1], chat[0]);
                     sentObj = new Object[1];
@@ -237,6 +239,8 @@ public class TCPClient {
                     gameController.sendCommand(request);
                     break;
                 case 53:
+                    totalCanvasPackets++;
+                    System.out.println("TOTAL CANVAS PACKETS RECEIVED: " + totalCanvasPackets);
                     sentObj = new Object[1];
                     sentObj[0] = msgReceived;
                     request = new Request(53, sentObj);
@@ -382,7 +386,7 @@ public class TCPClient {
                     String messageBody = message.getMessageBody();
                     String timeStamp = message.getTimestamp();
                     msgFromUser = timeStamp + "," + userName + "," + messageBody;
-                    System.out.println(msgFromUser);
+                    System.out.println("MESSAGE SENT: " + msgFromUser);
                     lenSent = msgFromUser.length() + 1; // +1 for the \n below
                     outBuffer.writeInt(cmdSent);
                     outBuffer.writeInt(lenSent);
