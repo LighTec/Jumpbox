@@ -304,6 +304,8 @@ public class TCPClient {
                     break;
 
                 case 3: // reconnect
+                    TCPClient.initialize(9000); // initialize self
+                    Main.t.start(); // start tcpclient receive thread
                     //To Do: connect the client socket to the game instead of lobby
                     cmdSent = 3;
                     msgFromUser = (String) request.arg[0];
