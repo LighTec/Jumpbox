@@ -231,11 +231,15 @@ public class GameController implements Initializable {
         if(drawer.getUsername().equals(Main.currentUsername)){
             gameStatusText.setText("Game Status: (Drawer)");
             canvas.setDrawable(true);
+            clearDrawing.setDisable(false);
             chatField.setDisable(true);
+            colorPicker.setDisable(false);
         }else{
             gameStatusText.setText("Game Status: (Guesser)");
             canvas.setDrawable(false);
+            clearDrawing.setDisable(true);
             chatField.setDisable(false);
+            colorPicker.setDisable(false);
         }
     }
 
