@@ -186,7 +186,13 @@ public class GameController implements Initializable {
                         chatObservable.add(formattedMsg);
                         break;
 
-                    case 53:
+                    case 50: // reset image
+                        canvas.resetCanvas();
+                        break;
+                    case 54: // send whole image
+                        // TODO FOR BRAD
+                        break;
+                    case 53: // send updated image
                         String toDraw = (String) request.arg[0];
                         System.out.println(toDraw);
                         canvas.draw(toDraw);
