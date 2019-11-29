@@ -10,6 +10,7 @@ public class Main extends Application {
 
     static String currentUsername;
     static String serverIp;
+    static boolean canDraw = false;
 
     static HandleServerCommandThread t;
 

@@ -140,13 +140,6 @@ public class TCPClient {
                     break;
                 case 23: //send draw leader
                     player = new Player(true);
-                    System.out.println("################################");
-                    System.out.println("DRAWER RECEIVED: " + playerName);
-                    System.out.println("################################");
-                    if(playerName.equals(Main.currentUsername)){
-                        System.out.println("I AM THE DRAWER!!!");
-                        System.out.println("################################");
-                    }
                     player.setUsername(playerName);
                     sentObj = new Object[1];
                     sentObj[0] = player;

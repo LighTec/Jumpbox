@@ -19,7 +19,6 @@ public class DrawingCanvas
     private GraphicsContext gc;
     private ArrayList<String> cords;
     private GameController controller;
-    private boolean drawable;
 
     DrawingCanvas(GameController controller, AnchorPane canvasParent) {
         cords = new ArrayList<String>();
@@ -61,15 +60,16 @@ public class DrawingCanvas
 
     public void setDrawable(boolean canDraw)
     {
-        drawable = canDraw;
+        Main.canDraw = canDraw;
+        System.out.println("Setting Drawable to " + canDraw + ".");
         resetCanvas();
     }
 
     private EventHandler<MouseEvent> mouseDown =  new EventHandler<MouseEvent>() {
         @Override
         public void handle(MouseEvent event) {
-            System.out.println("click " + drawable);
-            if (drawable)
+            System.out.println("click " + Main.canDraw);
+            if (Main.canDraw)
             {
                 QuadCurve quad = new QuadCurve();
                 quad.setStartX(0.0f);
@@ -85,10 +85,10 @@ public class DrawingCanvas
         }
     };
 
-    private EventHandler<MouseEvent> mouseMove =  new EventHandler<MouseEvent>() {
+    private EventHandler<MouseEvent> mouseMove = new EventHandler<MouseEvent>() {
         @Override
         public void handle(MouseEvent event) {
-            if (drawable)
+            if (Main.canDraw)
             {
                 gc.lineTo(event.getX(), event.getY());
                 gc.stroke();
@@ -104,10 +104,10 @@ public class DrawingCanvas
         }
     };
 
-    private EventHandler<MouseEvent> mouseUp =  new EventHandler<MouseEvent>() {
+    private EventHandler<MouseEvent> mouseUp = new EventHandler<MouseEvent>() {
         @Override
         public void handle(MouseEvent event) {
-            if (drawable)
+            if (Main.canDraw)
             {
                 gc.lineTo(event.getX(), event.getY());
                 gc.stroke();

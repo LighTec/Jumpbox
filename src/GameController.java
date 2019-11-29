@@ -67,13 +67,8 @@ public class GameController implements Initializable {
         this.chatBoxListView.setItems(chatObservable);
         this.playerListView.setItems(playersObservable);
         playersObservable.addAll(Main.playerNames);
-
         chatField.setOnAction(this::sendMessage);
-
         canvas = new DrawingCanvas(this, canvasParent);
-
-        // wait for server response
-        //Main.t.resumeTCP();
     }
 
     public void sendCommand(Request request) {
@@ -182,7 +177,9 @@ public class GameController implements Initializable {
                         break;
 
                     case 53:
-                        canvas.draw((String) request.arg[0]);
+                        String toDraw = (String) request.arg[0];
+                        System.out.println(toDraw);
+                        canvas.draw(toDraw);
                         break;
                     default:
                         System.err.println("Unknown command attempted to be sent.");
@@ -214,15 +211,14 @@ public class GameController implements Initializable {
     }
 
     private void setDrawer(Player drawer) {
-        System.out.println(Main.currentUsername.trim() + " " + drawer.getUsername().toString().trim());
-        if (Main.currentUsername.trim().equals(drawer.getUsername().trim())) {
+        if(drawer.getUsername().equals(Main.currentUsername)){
+            gameStatusText.setText("Game Status: (Drawer)");
             canvas.setDrawable(true);
             chatField.setDisable(true);
-            gameStatusText.setText("Game Status: (Drawer)");
-        } else {
+        }else{
+            gameStatusText.setText("Game Status: (Guesser)");
             canvas.setDrawable(false);
             chatField.setDisable(false);
-            gameStatusText.setText("Game Status: (Guesser)");
         }
     }
 
