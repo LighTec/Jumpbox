@@ -120,4 +120,9 @@ public class DrawingCanvas
             }
         }
     };
+
+    public void setColor(Color color)
+    {
+        gc.setStroke(color);
+    }
 }
