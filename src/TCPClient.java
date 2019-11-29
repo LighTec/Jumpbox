@@ -7,8 +7,8 @@ import java.nio.charset.StandardCharsets;
 
 public class TCPClient {
     //private static Player;
-    public static GameController gameController;
-    public static LobbyController lobbyController;
+    public static volatile GameController gameController;
+    public static volatile LobbyController lobbyController;
     private static String macAddress;
     private static DataOutputStream outBuffer;
     private static DataInputStream inBuffer;
@@ -92,16 +92,16 @@ public class TCPClient {
             pktBytes = msgHandler.getNextMessage();
             msgReceived = new String(pktBytes, StandardCharsets.US_ASCII);
             if(cmdReceived == 20){
-                System.out.println("Time received:::" + ByteBuffer.wrap(pktBytes).getInt());
+                //System.out.println("Time received:::" + ByteBuffer.wrap(pktBytes).getInt());
             }
-            System.out.println("New command received at client:\n\tCommand: " + cmdReceived + "\tLength: " + pktBytes.length + "\n\tString representation: " + msgReceived);
+            //System.out.println("New command received at client:\n\tCommand: " + cmdReceived + "\tLength: " + pktBytes.length + "\n\tString representation: " + msgReceived);
 
             switch (cmdReceived) {
                 case 4:
                     //Do something
                     break;
                 case 5:
-                    System.out.println("Message Recieved: " + msgReceived);
+                    //System.out.println("Message Recieved: " + msgReceived);
                     break;
                 // send game types
                 case 11:
@@ -304,19 +304,24 @@ public class TCPClient {
                     break;
 
                 case 3: // reconnect
+                    msgFromUser = (String) request.arg[0];
+                    playerName = msgFromUser;
+                    ip = (String) request.arg[1];
+
                     TCPClient.initialize(9000); // initialize self
                     Main.t.start(); // start tcpclient receive thread
                     //To Do: connect the client socket to the game instead of lobby
                     cmdSent = 3;
-                    msgFromUser = (String) request.arg[0];
-                    playerName = msgFromUser;
-                    lenSent = msgFromUser.length();
+
+                    lenSent = msgFromUser.length() + 1; // with printWriter.println, it adds an extra char
                     System.out.println(msgFromUser);
+                    System.out.println(lenSent);
                     outBuffer.writeInt(cmdSent);
                     outBuffer.writeInt(lenSent);
 //                    outBuffer.writeBytes(msgFromUser + "\n");
                     printWriter.println(msgFromUser);
 
+                    System.out.println("Case 3 end.");
 //                    handleServerCommand();
                     break;
 
@@ -353,6 +358,7 @@ public class TCPClient {
 
                 case 30: //get players and scores
                     //send the message
+                    System.out.println("Requesting player names & scores...");
                     cmdSent = 30;
                     outBuffer.writeInt(cmdSent);
                     //System.out.println(msgFromUser);

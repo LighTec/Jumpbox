@@ -64,7 +64,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
 
     @Override
     void handleSpecializedCommand(int cmd, byte[] pktBytes) {
-        System.out.println("inside Skribble");
+        //System.out.println("inside Skribble");
         try{
             int z = 0;
             switch(cmd){
@@ -76,32 +76,47 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                 case 3:
                     System.out.println("Reconnect request received while ingame, processing...");
                     String reconName = this.byteArrToString(pktBytes);
+                    System.out.println("Playername connecting: " + reconName);
                     Iterator<Player> reconPlayers = this.disconnectedPlayers.iterator();
                     while(reconPlayers.hasNext()){
                         Player recon = reconPlayers.next();
                         if(recon.getUsername().equals(reconName)){
                             // Tie the disconnected player to the new connection
+                            System.out.println("The player was found!");
+                            System.out.println("Stored keyname: " + recon.getUsername());
                             this.playerNetHash.replace(intkey,recon);
                             this.msgNetHandle.replace(intkey, new TCPMessageHandler());
                         }
                     }
                     Set<Integer> keyset3 = this.playerNetHash.keySet();
-                    //System.out.println("keyset1: " + keyset1);
                     String toSend3 = this.playersToSendList(keyset3);
-                    this.sendUpdates(key, 31, this.stringToByteArr(toSend3), true);
-                    this.sendToPlayer(key,14, new byte[0]); // send to all to move to skribble code
+                    //System.out.println("Updating all players with new player list:");
+                    //this.sendUpdates(key, 31, this.stringToByteArr(toSend3), true);
+                    this.sendToPlayer(key,12,this.stringToByteArr("-1"));
+                    //send the players name and their scores
+                    Set<Integer> keyset3_1 = this.playerNetHash.keySet();
+                    System.out.println("keyset3_1: " + keyset3_1);
+                    String toSend3_1 = this.playersToSendList(keyset3_1);
+                    this.sendToPlayer(key, 31, this.stringToByteArr(toSend3_1));
+                    this.sendToPlayer(key,14, new byte[0]); // send to move to skribble code
+                    try{
+                        System.out.println("Sleeping...");
+                        Thread.sleep(250);
+                        System.out.println("continuing execution.");
+                    }catch(InterruptedException e){
+
+                    }
                     if(this.matchStatus.equals(this.INMATCH)){
                         this.sendToPlayer(key,25,new byte[0]);
-                        //send the players name and their scores
-                        Set<Integer> keyset3_1 = this.playerNetHash.keySet();
-                        System.out.println("keyset3_1: " + keyset3_1);
-                        String toSend3_1 = this.playersToSendList(keyset3_1);
                         this.sendToPlayer(key, 31, this.stringToByteArr(toSend3_1));
                         // send to all the new drawer
+                        System.out.println("Sending to reconnection player the draw leader: " + this.drawLeader);
                         this.sendToPlayer(key, 23, this.stringToByteArr(this.drawLeader));
                         Iterator drawHistoryIter = this.drawHistory.listIterator();
                         while(drawHistoryIter.hasNext()){
-                            this.sendToPlayer(key, 53, pktBytes);
+                            byte[] drawBytes = (byte[])drawHistoryIter.next();
+                            System.out.println("sending packet to reconnected player: " + this.byteArrToString(drawBytes));
+                            this.sendToPlayer(key, 53, drawBytes);
                         }
                     }
                     break;
@@ -241,6 +256,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
         }
 
         // handle player disconnects
+        /* // don't worry about it
         if(this.playerNetHash.size() != this.playerRotations.size()){
             if(DEBUG){
                 System.out.println("Player disconnection or connection, iterating over linkedlist to remove player from list if disconnected.");
@@ -254,11 +270,12 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     }
                 }
                 if(!found){
+                    System.out.println("Player removed from drawer queue: " + this.playerRotations.get(i));
                     this.playerRotations.remove(num);
                 }
             }
         }
-
+*/
         //game logic
         switch(this.matchStatus){
             case ROUNDINIT:

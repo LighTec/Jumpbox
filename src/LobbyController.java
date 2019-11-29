@@ -61,7 +61,13 @@ public class LobbyController implements Initializable {
                 break;
             case 14: // Start of game
                 //Main.t.pauseTCP();
-                Main.router.startGame();
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        System.out.println("Running game...");
+                        Main.router.startGame();
+                    }
+                });
                 break;
             case 34: // A new player joined the game
                 playersObservable.add((String) request.arg[0]);

@@ -53,7 +53,7 @@ public class TCPMessageHandler {
         if(newdata.length == 0){
             return this.hasMessage();
         }
-        System.out.println("Newdata length: " + newdata.length);
+        //System.out.println("Newdata length: " + newdata.length);
         this.inBuffer.put(newdata);
         this.inBuffer.flip();
         boolean con = true;
@@ -80,7 +80,7 @@ public class TCPMessageHandler {
                         this.currentCmd = -1;
                         break;
                     }
-                    System.out.println("Command to parse length for: " + this.currentCmd);
+                    //System.out.println("Command to parse length for: " + this.currentCmd);
                     if(this.currentCmd == 0){
                         throw new UnknownError("Command 0 error! Where does the zero come from?!?");
                     }
@@ -90,14 +90,14 @@ public class TCPMessageHandler {
                             con = false;
                         }else{
                             int len = this.inBuffer.getInt();
-                            System.out.println("Command length received: " + len);
+                            //System.out.println("Command length received: " + len);
                             this.state = 2;
                             this.currentBytes = new byte[len];
                             this.bytesFilled = 0;
                         }
                     }else if(this.cmdLen[this.currentCmd] != -2){
                         this.currentBytes = new byte[this.cmdLen[this.currentCmd]];
-                        System.out.println("Byte buffer size for cmd args:  " + this.currentBytes.length);
+                        //System.out.println("Byte buffer size for cmd args:  " + this.currentBytes.length);
                         if(this.cmdLen[this.currentCmd] == 0){
                             this.state = 0;
                             this.cmdQueue.add(this.currentCmd);

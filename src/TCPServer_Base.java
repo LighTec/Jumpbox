@@ -170,6 +170,7 @@ public abstract class TCPServer_Base {
                                 this.playerNetHash.remove(intkey);
                                 this.msgNetHandle.remove(intkey);
                                 System.out.println("read() error for a client, or a client connection has closed for player: " + cplayer.getUsername());
+                                System.out.println("Adding them to the disconnected player pool for future reconnections.");
                                 key.cancel();  // deregister the socket
                                 continue;
                             }
@@ -279,6 +280,7 @@ public abstract class TCPServer_Base {
                 }
             }
         }catch(IOException e){
+            System.out.println("Error caught while handling commands...");
             e.printStackTrace();
         }
     }

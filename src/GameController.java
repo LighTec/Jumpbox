@@ -127,6 +127,7 @@ public class GameController implements Initializable {
                         currentWord = (String) request.arg[0];
                         break;
                     case 23: // Send draw leader
+                        System.out.println("Given draw leader, parsing...");
                         Player drawer = (Player) request.arg[0];
                         chatBoxListView.getItems().add(drawer.getUsername() + " is drawing next!");
                         setDrawer(drawer);
@@ -212,6 +213,7 @@ public class GameController implements Initializable {
     }
 
     public void newRound() {
+        System.out.println("Made it to newRound!");
         this.round = 0;
         canvas.resetCanvas();
         chatObservable.clear();
@@ -235,12 +237,14 @@ public class GameController implements Initializable {
 
     private void setDrawer(Player drawer) {
         if(drawer.getUsername().equals(Main.currentUsername)){
+            System.out.println("I am the DRAWER!");
             gameStatusText.setText("Game Status: (Drawer)");
             canvas.setDrawable(true);
             clearDrawing.setDisable(false);
             chatField.setDisable(true);
             colorPicker.setDisable(false);
         }else{
+            System.out.println("I am the GUESSER!");
             gameStatusText.setText("Game Status: (Guesser)");
             canvas.setDrawable(false);
             clearDrawing.setDisable(true);
