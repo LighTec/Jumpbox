@@ -33,6 +33,8 @@ public class GameController implements Initializable {
     private Label gameStatusText;
     @FXML
     private Button clearDrawing;
+    @FXML
+    private ColorPicker colorPicker;
 
     private String serverIp = Main.serverIp;
 
@@ -70,8 +72,13 @@ public class GameController implements Initializable {
         playersObservable.addAll(Main.playerNames);
         chatField.setOnAction(this::sendMessage);
         clearDrawing.setOnAction(this::clearButton);
+        colorPicker.setOnAction(this::changeColor);
 
         canvas = new DrawingCanvas(this, canvasParent);
+    }
+
+    private void changeColor(ActionEvent actionEvent) {
+        canvas.setColor(colorPicker.getValue());
     }
 
     public void sendCommand(Request request) {

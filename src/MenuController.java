@@ -10,7 +10,9 @@ import java.util.ResourceBundle;
 public class MenuController implements Initializable {
 
     @FXML
-    private Button confirmButton;
+    private Button newGameButton;
+    @FXML
+    private Button joinGameButton;
     @FXML
     private TextField userName;
     @FXML
@@ -20,13 +22,12 @@ public class MenuController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
-        confirmButton.setOnAction(this::enterPressed);
+        newGameButton.setOnAction(this::onNewGameClick);
+        joinGameButton.setOnAction(this::onJoinGameClick);
 
     }
 
-    private void enterPressed(Event e) {
-        Button source = (Button) e.getSource();
-
+    private void grabUserData(int cmd) {
         String username = this.userName.getText();
         String ip = this.ip.getText();
         if (!this.ip.getText().isEmpty() && !this.userName.getText().isEmpty()) {
@@ -36,6 +37,18 @@ public class MenuController implements Initializable {
 
         Main.currentUsername = username;
         Main.serverIp = ip;
+        Main.INITIAL_CMD = cmd;
+    }
+
+    private void onNewGameClick(Event e) {
+        grabUserData(1);
         Main.router.goToLobby();
     }
+
+    private void onJoinGameClick(Event e) {
+        grabUserData(3);
+        Main.router.goToLobby();
+    }
+
+
 }

@@ -19,6 +19,7 @@ public class DrawingCanvas
     private GraphicsContext gc;
     private ArrayList<String> cords;
     private GameController controller;
+    private Color color;
 
     DrawingCanvas(GameController controller, AnchorPane canvasParent) {
         cords = new ArrayList<String>();
@@ -30,6 +31,7 @@ public class DrawingCanvas
         // Get the graphics context of the canvas
         gc = canvas.getGraphicsContext2D();
         gc.setLineWidth(5);
+        this.color = Color.ORANGERED;
         gc.setStroke(Color.ORANGERED);
 
         canvasParent.setStyle("-fx-border-style: solid inside;" +
@@ -47,6 +49,9 @@ public class DrawingCanvas
 
     public void draw(String coords){
         String[] coordList = coords.split(",");
+
+        System.out.println("COLOORRRR: " + coordList[4]);
+        gc.setStroke(Color.web(coordList[4]));
         gc.beginPath();
         gc.moveTo(Double.parseDouble(coordList[0]), Double.parseDouble(coordList[1]));
         gc.lineTo(Double.parseDouble(coordList[2]), Double.parseDouble(coordList[3]));
@@ -94,7 +99,7 @@ public class DrawingCanvas
                 gc.stroke();
                 gc.closePath();
                 cords.add(event.getX() + "," + event.getY());
-                controller.updateImage(cords.get(0) + "," + cords.get(1));
+                controller.updateImage(cords.get(0) + "," + cords.get(1) + "," + color);
                 cords.clear();
                 test++;
                 gc.beginPath();
@@ -113,11 +118,17 @@ public class DrawingCanvas
                 gc.stroke();
                 gc.closePath();
                 cords.add(event.getX() + "," + event.getY());
-                controller.updateImage(cords.get(0) + "," + cords.get(1));
+                controller.updateImage(cords.get(0) + "," + cords.get(1) + "," + color);
                 cords.clear();
                 test++;
                 System.out.println("total packets:" + test);
             }
         }
     };
+
+    public void setColor(Color color)
+    {
+        gc.setStroke(color);
+        this.color = color;
+    }
 }
