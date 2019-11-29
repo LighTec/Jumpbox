@@ -196,6 +196,7 @@ public class GameController implements Initializable {
                         String toDraw = (String) request.arg[0];
                         System.out.println(toDraw);
                         canvas.draw(toDraw);
+                        System.out.println("RECEIVED TIMESTAMP: " + System.currentTimeMillis());
                         break;
                     default:
                         System.err.println("Unknown command attempted to be sent.");
@@ -208,7 +209,7 @@ public class GameController implements Initializable {
 
     public void updateImage(String coords) {
         TCPClient.sendFromUser(new Request(51, new Object[]{coords}));
-        System.out.println("CLIENT COORDS:" + coords);
+        System.out.println("SENT TIMESTAMP: " + System.currentTimeMillis());
     }
 
     public void newRound() {
