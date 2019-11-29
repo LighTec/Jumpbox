@@ -55,7 +55,7 @@ public class DrawingCanvas
     }
 
     public void resetCanvas() {
-        gc.clearRect(0, 0, 300, 200);
+        gc.clearRect(0, 0, 1000, 1000);
     }
 
     public void setDrawable(boolean canDraw)

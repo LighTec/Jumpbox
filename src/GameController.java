@@ -1,5 +1,6 @@
 
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 
 import java.util.*;
@@ -68,6 +69,8 @@ public class GameController implements Initializable {
         this.playerListView.setItems(playersObservable);
         playersObservable.addAll(Main.playerNames);
         chatField.setOnAction(this::sendMessage);
+        clearDrawing.setOnAction(this::clearButton);
+
         canvas = new DrawingCanvas(this, canvasParent);
     }
 
@@ -209,6 +212,13 @@ public class GameController implements Initializable {
         Main.playerNames.clear();
         Main.router.showPage("Main menu", "mainmenu.fxml");
     }
+
+    private void clearButton(ActionEvent actionEvent)
+    {
+        canvas.resetCanvas();
+    }
+
+
 
     private void setDrawer(Player drawer) {
         if(drawer.getUsername().equals(Main.currentUsername)){
