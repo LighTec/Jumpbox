@@ -245,7 +245,7 @@ public class GameController implements Initializable {
             canvas.setDrawable(false);
             clearDrawing.setDisable(true);
             chatField.setDisable(false);
-            colorPicker.setDisable(false);
+            colorPicker.setDisable(true);
         }
     }
 

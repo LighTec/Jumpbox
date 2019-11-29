@@ -74,6 +74,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     this.playerRotations.add(intkey); // add player to end of player draw list
                     break;
                 case 3:
+                    System.out.println("Reconnect request received while ingame, processing...");
                     String reconName = this.byteArrToString(pktBytes);
                     Iterator<Player> reconPlayers = this.disconnectedPlayers.iterator();
                     while(reconPlayers.hasNext()){
@@ -88,7 +89,7 @@ GAMEOVER: all matches are complete, and the server will terminate on the next cy
                     //System.out.println("keyset1: " + keyset1);
                     String toSend3 = this.playersToSendList(keyset3);
                     this.sendUpdates(key, 31, this.stringToByteArr(toSend3), true);
-                    this.sendToPlayer(key,14, null); // send to all to move to skribble code
+                    this.sendToPlayer(key,14, new byte[0]); // send to all to move to skribble code
                     if(this.matchStatus.equals(this.INMATCH)){
                         this.sendToPlayer(key,25,new byte[0]);
                         //send the players name and their scores
