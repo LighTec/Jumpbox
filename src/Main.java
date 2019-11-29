@@ -11,6 +11,7 @@ public class Main extends Application {
     static String currentUsername;
     static String serverIp;
     static boolean canDraw = false;
+    static int INITIAL_CMD;
 
     static HandleServerCommandThread t;
 

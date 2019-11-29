@@ -31,7 +31,7 @@ public class LobbyController implements Initializable {
         this.currentPlayerName = Main.currentUsername;
         this.serverIp = Main.serverIp;
 
-        TCPClient.sendFromUser(new Request(1, new Object[]{currentPlayerName, serverIp}));
+        TCPClient.sendFromUser(new Request(Main.INITIAL_CMD, new Object[]{currentPlayerName, serverIp}));
     }
 
     public void sendCommand(Request request) {
